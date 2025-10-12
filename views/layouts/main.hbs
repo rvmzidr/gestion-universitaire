@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}} - Gestion Universitaire</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    {{#if user}}
+    <nav class="navbar">
+        <div class="container">
+            <h1>Gestion Universitaire</h1>
+            <ul>
+                <li><a href="/dashboard">Tableau de bord</a></li>
+                <li><a href="/auth/profile">Profil</a></li>
+                <li><a href="/auth/logout">Déconnexion</a></li>
+            </ul>
+            <span>Bienvenue, {{user.prenom}} {{user.nom}} ({{user.role}})</span>
+        </div>
+    </nav>
+    {{/if}}
+
+    <main class="container">
+        {{{body}}}
+    </main>
+
+    <footer>
+        <p>&copy; 2025 ISET Tozeur - Gestion Universitaire</p>
+    </footer>
+</body>
+</html>

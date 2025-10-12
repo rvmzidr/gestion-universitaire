@@ -1,0 +1,29 @@
+<div class="form-container">
+    <h1>Modifier le département</h1>
+
+    {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    <form action="/departements/edit/{{departement.id}}" method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label for="code">Code :</label>
+            <input type="text" id="code" name="code" value="{{departement.code}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" value="{{departement.nom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description :</label>
+            <textarea id="description" name="description" rows="4">{{departement.description}}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Modifier</button>
+            <a href="/departements" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,57 @@
+<div class="form-container">
+    <h1>Ajouter un étudiant</h1>
+
+    {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    <form action="/etudiants/create" method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label for="cin">CIN :</label>
+            <input type="text" id="cin" name="cin" value="{{data.cin}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" value="{{data.nom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" value="{{data.prenom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email :</label>
+            <input type="email" id="email" name="email" value="{{data.email}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date_naissance">Date de naissance :</label>
+            <input type="date" id="date_naissance" name="date_naissance" value="{{data.date_naissance}}">
+        </div>
+
+        <div class="form-group">
+            <label for="id_specialite">Spécialité :</label>
+            <select id="id_specialite" name="id_specialite" required>
+                <option value="">Sélectionnez une spécialité</option>
+                {{#each specialites}}
+                <option value="{{this.id}}">{{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_groupe">Groupe :</label>
+            <select id="id_groupe" name="id_groupe" required>
+                <option value="">Sélectionnez un groupe</option>
+                {{#each groupes}}
+                <option value="{{this.id}}">{{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Créer</button>
+            <a href="/etudiants" class="btn btn-secondary">Annuler</a>
+        </div>

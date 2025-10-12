@@ -1,0 +1,35 @@
+<div class="error-container">
+    <div class="error-box">
+        <h1>❌ Erreur</h1>
+        <p>{{message}}</p>
+        <a href="/dashboard" class="btn btn-primary">Retour au tableau de bord</a>
+    </div>
+</div>
+
+<style>
+.error-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.error-box {
+    text-align: center;
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.error-box h1 {
+    color: #e74c3c;
+    margin-bottom: 20px;
+}
+
+.error-box p {
+    margin-bottom: 30px;
+    color: #555;
+    font-size: 18px;
+}
+</style>

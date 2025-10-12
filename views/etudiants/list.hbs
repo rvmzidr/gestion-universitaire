@@ -1,0 +1,51 @@
+<div class="page-header">
+    <h1>Liste des étudiants</h1>
+    <a href="/etudiants/create" class="btn btn-primary">+ Ajouter un étudiant</a>
+</div>
+
+{{#if success}}
+<div class="alert alert-success">
+    {{#if (eq success 'create')}}Étudiant créé avec succès{{/if}}
+    {{#if (eq success 'update')}}Étudiant modifié avec succès{{/if}}
+    {{#if (eq success 'delete')}}Étudiant supprimé avec succès{{/if}}
+</div>
+{{/if}}
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>CIN</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Groupe</th>
+                <th>Spécialité</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each etudiants}}
+            <tr>
+                <td>{{this.cin}}</td>
+                <td>{{this.nom}}</td>
+                <td>{{this.prenom}}</td>
+                <td>{{this.email}}</td>
+                <td>{{this.groupe_nom}}</td>
+                <td>{{this.specialite_nom}}</td>
+                <td class="actions">
+                    <a href="/etudiants/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
+                    <form action="/etudiants/delete/{{this.id}}" method="POST" style="display:inline;" 
+                          onsubmit="return confirm('Êtes-vous sûr ?');">
+                        <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="7" class="text-center">Aucun étudiant trouvé</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

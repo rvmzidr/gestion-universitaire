@@ -1,0 +1,77 @@
+<div class="dashboard">
+    <h1>Tableau de bord</h1>
+    
+    <div class="welcome-message">
+        <h2>Bienvenue, {{user.prenom}} {{user.nom}} !</h2>
+        <p>Rôle : <strong>{{user.role}}</strong></p>
+    </div>
+
+    <div class="dashboard-cards">
+        {{#if (eq user.role 'admin')}}
+        <div class="card">
+            <h3>📚 Départements</h3>
+            <p>Gérer les départements de l'université</p>
+            <a href="/departements" class="btn">Accéder</a>
+        </div>
+        <div class="card">
+            <h3>👨‍🏫 Enseignants</h3>
+            <p>Gérer la liste des enseignants</p>
+            <a href="/enseignants" class="btn">Accéder</a>
+        </div>
+        <div class="card">
+            <h3>👨‍🎓 Étudiants</h3>
+            <p>Gérer la liste des étudiants</p>
+            <a href="/etudiants" class="btn">Accéder</a>
+        </div>
+        <div class="card">
+            <h3>🏢 Salles</h3>
+            <p>Gérer les salles de cours</p>
+            <a href="/salles" class="btn">Accéder</a>
+        </div>
+        {{/if}}
+
+        {{#if (eq user.role 'directeur')}}
+        <div class="card">
+            <h3>👨‍🏫 Enseignants</h3>
+            <p>Consulter les enseignants</p>
+            <a href="/enseignants" class="btn">Accéder</a>
+        </div>
+        <div class="card">
+            <h3>👨‍🎓 Étudiants</h3>
+            <p>Consulter les étudiants</p>
+            <a href="/etudiants" class="btn">Accéder</a>
+        </div>
+        {{/if}}
+
+        {{#if (eq user.role 'enseignant')}}
+        <div class="card">
+            <h3>📅 Mon emploi du temps</h3>
+            <p>Consulter mon planning</p>
+            <a href="#" class="btn">Bientôt disponible</a>
+        </div>
+        <div class="card">
+            <h3>📝 Mes cours</h3>
+            <p>Gérer mes cours</p>
+            <a href="#" class="btn">Bientôt disponible</a>
+        </div>
+        {{/if}}
+
+        {{#if (eq user.role 'etudiant')}}
+        <div class="card">
+            <h3>📅 Mon emploi du temps</h3>
+            <p>Consulter mon planning</p>
+            <a href="#" class="btn">Bientôt disponible</a>
+        </div>
+        <div class="card">
+            <h3>📊 Mes notes</h3>
+            <p>Consulter mes résultats</p>
+            <a href="#" class="btn">Bientôt disponible</a>
+        </div>
+        <div class="card">
+            <h3>❌ Mes absences</h3>
+            <p>Consulter mes absences</p>
+            <a href="#" class="btn">Bientôt disponible</a>
+        </div>
+        {{/if}}
+    </div>
+</div>

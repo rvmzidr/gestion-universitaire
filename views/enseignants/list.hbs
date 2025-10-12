@@ -1,0 +1,49 @@
+<div class="page-header">
+    <h1>Liste des enseignants</h1>
+    <a href="/enseignants/create" class="btn btn-primary">+ Ajouter un enseignant</a>
+</div>
+
+{{#if success}}
+<div class="alert alert-success">
+    {{#if (eq success 'create')}}Enseignant créé avec succès{{/if}}
+    {{#if (eq success 'update')}}Enseignant modifié avec succès{{/if}}
+    {{#if (eq success 'delete')}}Enseignant supprimé avec succès{{/if}}
+</div>
+{{/if}}
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Département</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each enseignants}}
+            <tr>
+                <td>{{this.nom}}</td>
+                <td>{{this.prenom}}</td>
+                <td>{{this.email}}</td>
+                <td>{{this.telephone}}</td>
+                <td>{{this.departement_nom}}</td>
+                <td class="actions">
+                    <a href="/enseignants/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
+                    <form action="/enseignants/delete/{{this.id}}" method="POST" style="display:inline;" 
+                          onsubmit="return confirm('Êtes-vous sûr ?');">
+                        <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="6" class="text-center">Aucun enseignant trouvé</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

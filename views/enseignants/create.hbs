@@ -1,0 +1,46 @@
+<div class="form-container">
+    <h1>Ajouter un enseignant</h1>
+
+    {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    <form action="/enseignants/create" method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" value="{{data.nom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" value="{{data.prenom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email :</label>
+            <input type="email" id="email" name="email" value="{{data.email}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="telephone">Téléphone :</label>
+            <input type="text" id="telephone" name="telephone" value="{{data.telephone}}">
+        </div>
+
+        <div class="form-group">
+            <label for="id_departement">Département :</label>
+            <select id="id_departement" name="id_departement" required>
+                <option value="">Sélectionnez un département</option>
+                {{#each departements}}
+                <option value="{{this.id}}" {{#if (eq this.id ../data.id_departement)}}selected{{/if}}>
+                    {{this.nom}}
+                </option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Créer</button>
+            <a href="/enseignants" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>

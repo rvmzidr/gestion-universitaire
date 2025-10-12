@@ -1,0 +1,52 @@
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Inscription</h2>
+        
+        {{#if error}}
+        <div class="alert alert-error">{{error}}</div>
+        {{/if}}
+
+        <form action="/auth/register" method="POST">
+            <div class="form-group">
+                <label for="nom">Nom :</label>
+                <input type="text" id="nom" name="nom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="prenom">Prénom :</label>
+                <input type="text" id="prenom" name="prenom" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email :</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="login">Login :</label>
+                <input type="text" id="login" name="login" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Mot de passe :</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">Rôle :</label>
+                <select id="role" name="role" required>
+                    <option value="etudiant">Étudiant</option>
+                    <option value="enseignant">Enseignant</option>
+                    <option value="directeur">Directeur</option>
+                    <option value="admin">Administrateur</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">S'inscrire</button>
+        </form>
+
+        <p class="text-center">
+            Déjà inscrit ? <a href="/auth/login">Se connecter</a>
+        </p>
+    </div>
+</div>

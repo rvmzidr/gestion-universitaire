@@ -1,0 +1,51 @@
+<div class="page-header">
+    <h1>Liste des départements</h1>
+    <a href="/departements/create" class="btn btn-primary">+ Ajouter un département</a>
+</div>
+
+{{#if success}}
+<div class="alert alert-success">
+    {{#if (eq success 'create')}}Département créé avec succès{{/if}}
+    {{#if (eq success 'update')}}Département modifié avec succès{{/if}}
+    {{#if (eq success 'delete')}}Département supprimé avec succès{{/if}}
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-error">Erreur lors de la suppression</div>
+{{/if}}
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Nom</th>
+                <th>Description</th>
+                <th>Date de création</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each departements}}
+            <tr>
+                <td>{{this.code}}</td>
+                <td>{{this.nom}}</td>
+                <td>{{this.description}}</td>
+                <td>{{this.created_at}}</td>
+                <td class="actions">
+                    <a href="/departements/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
+                    <form action="/departements/delete/{{this.id}}" method="POST" style="display:inline;" 
+                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce département ?');">
+                        <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                    </form>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="5" class="text-center">Aucun département trouvé</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
