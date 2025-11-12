@@ -1,13 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { authMiddleware } = require('../middleware/authMiddleware');
+const DashboardController = require('../controllers/dashboardController');
 
-router.get('/', authMiddleware, (req, res) => {
-    res.render('dashboard/index', {
-        layout: 'main',
-        title: 'Tableau de bord',
-        user: req.user
-    });
-});
+router.get('/', authMiddleware, DashboardController.index);
 
 module.exports = router;

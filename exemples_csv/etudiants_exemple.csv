@@ -1,0 +1,11 @@
+nom,prenom,email,numero_etudiant,date_naissance,telephone,adresse,groupe,specialite
+Benali,Ahmed,ahmed.benali@etudiant.fr,E2025001,2003-05-15,0612345678,12 Rue de Tunis,Groupe A,Informatique
+Khaled,Fatma,fatma.khaled@etudiant.fr,E2025002,2003-08-20,0623456789,45 Avenue Habib Bourguiba,Groupe A,Informatique
+Trabelsi,Mohamed,mohamed.trabelsi@etudiant.fr,E2025003,2002-12-10,0634567890,78 Boulevard de la République,Groupe B,Informatique
+Jebali,Sarra,sarra.jebali@etudiant.fr,E2025004,2003-03-25,0645678901,23 Rue de Carthage,Groupe A,Mathématiques
+Gharbi,Karim,karim.gharbi@etudiant.fr,E2025005,2003-11-08,0656789012,56 Avenue de la Liberté,Groupe B,Mathématiques
+Mansouri,Amira,amira.mansouri@etudiant.fr,E2025006,2003-01-30,0667890123,89 Rue Mongi Slim,Groupe A,Physique
+Ktari,Yassine,yassine.ktari@etudiant.fr,E2025007,2002-07-18,0678901234,34 Avenue de Paris,Groupe B,Physique
+Salem,Leila,leila.salem@etudiant.fr,E2025008,2003-09-12,0689012345,67 Boulevard Mohammed V,Groupe A,Génie Civil
+Nouri,Rami,rami.nouri@etudiant.fr,E2025009,2003-04-05,0690123456,12 Rue Farhat Hached,Groupe B,Génie Civil
+Bouazizi,Salma,salma.bouazizi@etudiant.fr,E2025010,2003-06-22,0601234567,45 Avenue Hédi Chaker,Groupe A,Électronique

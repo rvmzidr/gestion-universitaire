@@ -1,0 +1,102 @@
+<div class="container">
+    <div class="page-header">
+        <h1>📥 Importer des enseignants</h1>
+        <a href="/enseignants" class="btn btn-secondary">← Retour à la liste</a>
+    </div>
+
+    {{#if error}}
+        <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    {{#if success}}
+        <div class="alert alert-success">{{success}}</div>
+    {{/if}}
+
+    {{#if errors}}
+        <div class="alert alert-warning">
+            <strong>⚠️ Erreurs détectées :</strong>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+                {{#each errors}}
+                    <li>{{this}}</li>
+                {{/each}}
+            </ul>
+        </div>
+    {{/if}}
+
+    <div class="form-container">
+        <div class="info-card">
+            <h3>📋 Instructions</h3>
+            <p>Importez plusieurs enseignants en une seule fois à partir d'un fichier CSV.</p>
+            <ul style="margin-left: 20px; margin-top: 10px; color: var(--text-secondary);">
+                <li>Le fichier doit être au format CSV (séparateur : virgule)</li>
+                <li>Colonnes requises : <strong>nom</strong>, <strong>prenom</strong>, <strong>email</strong></li>
+                <li>Colonnes optionnelles : <strong>telephone</strong>, <strong>specialite</strong>, <strong>departement</strong></li>
+                <li>Le nom du département doit correspondre exactement à un département existant</li>
+                <li>Taille maximale : 5 MB</li>
+            </ul>
+            <div style="margin-top: 15px;">
+                <a href="/enseignants/template" class="btn btn-info btn-sm">⬇️ Télécharger le modèle CSV</a>
+            </div>
+        </div>
+
+        {{#if departements}}
+        <div class="info-card" style="border-left-color: var(--secondary-color);">
+            <h3>🏛️ Départements disponibles</h3>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
+                {{#each departements}}
+                    <span class="badge badge-primary">{{this.nom}}</span>
+                {{/each}}
+            </div>
+        </div>
+        {{/if}}
+
+        <form action="/enseignants/import" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="csvFile">📄 Sélectionner le fichier CSV :</label>
+                <input 
+                    type="file" 
+                    id="csvFile" 
+                    name="csvFile" 
+                    accept=".csv" 
+                    required
+                    style="padding: 10px; border: 2px dashed var(--border-color); border-radius: var(--radius-md); background: var(--bg-secondary);"
+                >
+                <small style="color: var(--text-muted); display: block; margin-top: 5px;">
+                    Formats acceptés : .csv (max 5 MB)
+                </small>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">📤 Importer les enseignants</button>
+                <a href="/enseignants" class="btn btn-secondary">Annuler</a>
+            </div>
+        </form>
+
+        <div class="info-card" style="margin-top: 30px; border-left-color: var(--info-color);">
+            <h3>💡 Exemple de fichier CSV</h3>
+            <pre style="background: var(--bg-secondary); padding: 15px; border-radius: var(--radius-md); overflow-x: auto; font-size: 0.9rem;">nom,prenom,email,telephone,specialite,departement
+Dupont,Jean,jean.dupont@universite.fr,0123456789,Programmation,Informatique
+Martin,Marie,marie.martin@universite.fr,0987654321,Algèbre,Mathématiques
+Bernard,Pierre,pierre.bernard@universite.fr,0147258369,Mécanique,Physique</pre>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="file"] {
+        cursor: pointer;
+    }
+    
+    input[type="file"]:hover {
+        border-color: var(--primary-color) !important;
+        background: var(--bg-primary) !important;
+    }
+
+    pre {
+        white-space: pre;
+        word-wrap: normal;
+        margin: 0;
+        font-family: 'Courier New', monospace;
+        color: var(--text-primary);
+    }
+</style>

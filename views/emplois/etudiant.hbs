@@ -1,0 +1,71 @@
+<div class="page-header">
+    <h1>Mon emploi du temps</h1>
+    <div style="display: flex; gap: 10px;">
+        <span class="badge badge-primary">Année universitaire 2025 - 2026</span>
+    </div>
+</div>
+
+{{#if missingProfile}}
+    <div class="info-card">
+        <h3>Profil étudiant incomplet</h3>
+        <p>Nous n'avons pas trouvé de fiche étudiant associée à votre compte. Merci de contacter l'administration pour finaliser votre inscription.</p>
+    </div>
+{{else if missingGroup}}
+    <div class="info-card">
+        <h3>Groupe non défini</h3>
+        <p>Votre fiche étudiante ne contient pas encore d'affectation à un groupe. Veuillez contacter le service scolarité.</p>
+    </div>
+{{else}}
+    <div class="info-card" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+        <div>
+            <h3>{{student.prenom}} {{student.nom}}</h3>
+            <p style="margin-top: 5px; color: var(--text-secondary);">
+                Groupe : <strong>{{groupe.nom}}</strong>
+                {{#if student.specialite_nom}}
+                    • Spécialité : <strong>{{student.specialite_nom}}</strong>
+                {{/if}}
+            </p>
+        </div>
+        <div style="margin-left: auto; display: flex; gap: 10px;">
+            <span class="badge badge-success">Semestre courant</span>
+            {{#if hasCours}}
+                <span class="badge badge-info">{{activeDayCount}} jour{{#if (eq activeDayCount 1)}}{{else}}s{{/if}} planifié{{#if (eq activeDayCount 1)}}{{else}}s{{/if}}</span>
+            {{/if}}
+        </div>
+    </div>
+
+    {{#unless hasCours}}
+        <div class="info-card" style="border-left-color: var(--warning-color);">
+            <h3>Aucun cours planifié</h3>
+            <p>Votre emploi du temps n'a pas encore été publié. Revenez plus tard ou contactez votre responsable de formation.</p>
+        </div>
+    {{/unless}}
+
+    {{#if hasCours}}
+        <div class="calendar-wrapper">
+            <div class="calendar-time-column">
+                {{#each timeScale}}
+                    <div class="calendar-time-slot">{{this}}</div>
+                {{/each}}
+            </div>
+            <div class="calendar-days">
+                {{#each schedule}}
+                    <div class="calendar-day">
+                        <div class="calendar-day-header">{{this.label}}</div>
+                        <div class="calendar-day-body" style="height: {{../calendarHeight}}px;">
+                            {{#each this.sessions}}
+                                <div class="calendar-event" style="top: {{this.position.top}}px; height: {{this.position.height}}px;">
+                                    <span class="calendar-event-time">{{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</span>
+                                    <strong class="calendar-event-title">{{this.titre}}</strong>
+                                    <span class="calendar-event-meta">{{this.type_label}}</span>
+                                    <span class="calendar-event-detail">👨‍🏫 {{this.enseignant_affichage}}</span>
+                                    <span class="calendar-event-detail">🏫 {{this.salle_affichage}}</span>
+                                </div>
+                            {{/each}}
+                        </div>
+                    </div>
+                {{/each}}
+            </div>
+        </div>
+    {{/if}}
+{{/if}}

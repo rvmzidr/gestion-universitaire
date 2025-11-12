@@ -1,6 +1,9 @@
 <div class="page-header">
     <h1>Liste des départements</h1>
-    <a href="/departements/create" class="btn btn-primary">+ Ajouter un département</a>
+    <div style="display: flex; gap: 10px;">
+        <a href="/departements/create" class="btn btn-primary">+ Ajouter un département</a>
+        <a href="/departements/import" class="btn btn-info">📥 Importer CSV</a>
+    </div>
 </div>
 
 {{#if success}}

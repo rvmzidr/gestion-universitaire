@@ -1,0 +1,74 @@
+<div class="page-header">
+    <h1>Gestion des cours</h1>
+    <div style="display: flex; gap: 10px;">
+        <a href="/cours/create" class="btn btn-primary">+ Planifier un cours</a>
+    </div>
+</div>
+
+{{#if success}}
+    <div class="alert alert-success">
+        {{#if (eq success 'create')}}Cours planifié avec succès.{{/if}}
+        {{#if (eq success 'update')}}Cours mis à jour avec succès.{{/if}}
+        {{#if (eq success 'delete')}}Cours supprimé avec succès.{{/if}}
+    </div>
+{{/if}}
+
+{{#if error}}
+    <div class="alert alert-error">Une erreur est survenue. Veuillez réessayer.</div>
+{{/if}}
+
+<div class="info-card" style="margin-bottom: var(--spacing-xl);">
+    <h3>📚 Vue d'ensemble</h3>
+    <p>Consultez et gérez les cours programmés. Les conflits d'horaires sont empêchés automatiquement lors de la création et de la modification.</p>
+</div>
+
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Type</th>
+                <th>Enseignant</th>
+                <th>Groupe</th>
+                <th>Salle</th>
+                <th>Jour</th>
+                <th>Horaire</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each cours}}
+                <tr>
+                    <td>
+                        <strong>{{this.titre}}</strong>
+                        {{#if this.description}}
+                            <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;">{{this.description}}</div>
+                        {{/if}}
+                    </td>
+                    <td><span class="badge badge-primary">{{this.type_label}}</span></td>
+                    <td>
+                        {{#if this.enseignant_nom}}
+                            {{this.enseignant_prenom}} {{this.enseignant_nom}}
+                        {{else}}
+                            <span style="color: var(--text-muted);">À affecter</span>
+                        {{/if}}
+                    </td>
+                    <td>{{#if this.groupe_nom}}{{this.groupe_nom}}{{else}}<span style="color: var(--text-muted);">À affecter</span>{{/if}}</td>
+                    <td>{{#if this.salle_nom}}{{this.salle_nom}}{{else if this.salle_code}}{{this.salle_code}}{{else}}<span style="color: var(--text-muted);">À affecter</span>{{/if}}</td>
+                    <td>{{this.jour_label}}</td>
+                    <td>{{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</td>
+                    <td class="actions">
+                        <a href="/cours/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
+                        <form action="/cours/delete/{{this.id}}" method="POST" style="display: inline;" onsubmit="return confirm('Confirmez-vous la suppression de ce cours ?');">
+                            <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                        </form>
+                    </td>
+                </tr>
+            {{else}}
+                <tr>
+                    <td colspan="8" class="text-center">Aucun cours planifié pour le moment.</td>
+                </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>

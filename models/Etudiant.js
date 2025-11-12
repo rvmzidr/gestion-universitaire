@@ -23,6 +23,17 @@ class Etudiant {
         return rows[0];
     }
 
+    static async findByEmail(email) {
+        const [rows] = await db.query(`
+            SELECT e.*, g.nom as groupe_nom, s.nom as specialite_nom 
+            FROM etudiants e
+            LEFT JOIN groupes g ON e.id_groupe = g.id
+            LEFT JOIN specialites s ON e.id_specialite = s.id
+            WHERE e.email = ?
+        `, [email]);
+        return rows[0];
+    }
+
     static async create(data) {
         const { nom, prenom, email, cin, date_naissance, id_groupe, id_specialite } = data;
         const [result] = await db.query(

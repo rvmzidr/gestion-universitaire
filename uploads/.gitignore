@@ -1,0 +1,8 @@
+# Ignorer tous les fichiers uploadés
+*
+
+# Sauf ce fichier .gitignore
+!.gitignore
+
+# Garder le dossier dans git
+!.keep

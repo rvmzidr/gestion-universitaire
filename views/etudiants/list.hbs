@@ -1,6 +1,9 @@
 <div class="page-header">
     <h1>Liste des étudiants</h1>
-    <a href="/etudiants/create" class="btn btn-primary">+ Ajouter un étudiant</a>
+    <div style="display: flex; gap: 10px;">
+        <a href="/etudiants/create" class="btn btn-primary">+ Ajouter un étudiant</a>
+        <a href="/etudiants/import" class="btn btn-info">📥 Importer CSV</a>
+    </div>
 </div>
 
 {{#if success}}

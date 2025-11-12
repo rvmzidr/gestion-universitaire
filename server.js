@@ -14,7 +14,23 @@ app.engine('hbs', engine({
     defaultLayout: 'main',
     layoutsDir: path.join(__dirname, 'views/layouts'),
     helpers: {
-        eq: (a, b) => a === b
+        eq: (a, b) => {
+            if (a === undefined || a === null) return false;
+            if (b === undefined || b === null) return false;
+            return String(a) === String(b);
+        },
+        isIn: (value, ...args) => {
+            const options = args.pop();
+            if (value === undefined || value === null) return false;
+            return args.some(item => String(item) === String(value));
+        },
+        substring: (str, start, end) => {
+            if (!str) return '';
+            return String(str).substring(start, end);
+        },
+        json: (context) => {
+            return JSON.stringify(context);
+        }
     }
 }));
 app.set('view engine', 'hbs');
@@ -45,12 +61,16 @@ const dashboardRoutes = require('./routes/dashboard');
 const departementRoutes = require('./routes/departements');
 const enseignantRoutes = require('./routes/enseignants');
 const etudiantRoutes = require('./routes/etudiants');
+const coursRoutes = require('./routes/cours');
+const emploisRoutes = require('./routes/emplois');
 
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/departements', departementRoutes);
 app.use('/enseignants', enseignantRoutes);
 app.use('/etudiants', etudiantRoutes);
+app.use('/cours', coursRoutes);
+app.use('/emplois', emploisRoutes);
 
 // Page d'accueil (redirection)
 app.get('/', (req, res) => {

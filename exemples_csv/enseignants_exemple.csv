@@ -1,0 +1,9 @@
+nom,prenom,email,telephone,specialite,departement
+Dupont,Jean,jean.dupont@universite.fr,0123456789,Programmation Orientée Objet,Informatique
+Martin,Marie,marie.martin@universite.fr,0987654321,Algèbre Linéaire,Mathématiques
+Bernard,Pierre,pierre.bernard@universite.fr,0147258369,Mécanique Quantique,Physique
+Dubois,Sophie,sophie.dubois@universite.fr,0156473829,Structures Métalliques,Génie Civil
+Leroy,Paul,paul.leroy@universite.fr,0198765432,Systèmes Embarqués,Électronique
+Moreau,Claire,claire.moreau@universite.fr,0134567890,Intelligence Artificielle,Informatique
+Simon,Luc,luc.simon@universite.fr,0167890123,Analyse Numérique,Mathématiques
+Laurent,Emma,emma.laurent@universite.fr,0145678912,Thermodynamique,Physique

@@ -9,14 +9,61 @@
 <body>
     {{#if user}}
     <nav class="navbar">
-        <div class="container">
-            <h1>Gestion Universitaire</h1>
-            <ul>
-                <li><a href="/dashboard">Tableau de bord</a></li>
-                <li><a href="/auth/profile">Profil</a></li>
-                <li><a href="/auth/logout">Déconnexion</a></li>
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🎓</span>
+                <span class="brand-text">ISET Tozeur</span>
+            </div>
+            
+            <ul class="nav-menu">
+                <li><a href="/dashboard" class="nav-link">
+                    <span class="link-icon">📊</span>
+                    <span>Tableau de bord</span>
+                </a></li>
+                
+                {{#if (isIn user.role 'admin' 'directeur')}}
+                    <li><a href="/departements" class="nav-link">
+                        <span class="link-icon">🏛️</span>
+                        <span>Départements</span>
+                    </a></li>
+                    <li><a href="/enseignants" class="nav-link">
+                        <span class="link-icon">👨‍🏫</span>
+                        <span>Enseignants</span>
+                    </a></li>
+                    <li><a href="/etudiants" class="nav-link">
+                        <span class="link-icon">👨‍🎓</span>
+                        <span>Étudiants</span>
+                    </a></li>
+                    <li><a href="/cours" class="nav-link">
+                        <span class="link-icon">📚</span>
+                        <span>Cours</span>
+                    </a></li>
+                {{/if}}
+                
+                {{#if (eq user.role 'etudiant')}}
+                    <li><a href="/emplois/mon" class="nav-link">
+                        <span class="link-icon">📅</span>
+                        <span>Mon emploi</span>
+                    </a></li>
+                {{/if}}
             </ul>
-            <span>Bienvenue, {{user.prenom}} {{user.nom}} ({{user.role}})</span>
+            
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-avatar">{{user.initiales}}</span>
+                    <span class="user-name">{{user.prenom}} {{user.nom}}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/auth/profile" class="dropdown-link">
+                        <span class="link-icon">👤</span>
+                        <span>Mon profil</span>
+                    </a>
+                    <a href="/auth/logout" class="dropdown-link logout">
+                        <span class="link-icon">🚪</span>
+                        <span>Déconnexion</span>
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
     {{/if}}
@@ -28,5 +75,7 @@
     <footer>
         <p>&copy; 2025 ISET Tozeur - Gestion Universitaire</p>
     </footer>
+    
+    <script src="/js/theme.js"></script>
 </body>
 </html>

@@ -1,77 +1,367 @@
 <div class="dashboard">
-    <h1>Tableau de bord</h1>
-    
-    <div class="welcome-message">
-        <h2>Bienvenue, {{user.prenom}} {{user.nom}} !</h2>
-        <p>Rôle : <strong>{{user.role}}</strong></p>
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>📊 Tableau de bord</h1>
+            {{#if (eq user.role 'admin')}}
+            <p class="dashboard-subtitle">Vue globale de tous les départements</p>
+            {{else if (eq user.role 'directeur')}}
+            <p class="dashboard-subtitle">Gestion de votre département</p>
+            {{else}}
+            <p class="dashboard-subtitle">Bienvenue dans votre espace</p>
+            {{/if}}
+        </div>
+        <div class="header-actions">
+            <button id="theme-toggle" class="theme-toggle" title="Changer le thème">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
     </div>
 
+    {{#if (eq user.role 'admin')}}
+    <!-- Dashboard ADMIN - Vue globale -->
+    {{#if stats}}
+    <!-- Statistiques principales -->
+    <div class="stats-grid">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">🏛️</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.departements}}</div>
+                <div class="stat-label">Départements</div>
+            </div>
+            <div class="stat-badge">Actifs</div>
+        </div>
+        
+        <div class="stat-card stat-success">
+            <div class="stat-icon">👨‍🏫</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.enseignants}}</div>
+                <div class="stat-label">Enseignants</div>
+            </div>
+            <div class="stat-badge">Total</div>
+        </div>
+        
+        <div class="stat-card stat-info">
+            <div class="stat-icon">👨‍🎓</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.etudiants}}</div>
+                <div class="stat-label">Étudiants</div>
+            </div>
+            <div class="stat-badge">Inscrits</div>
+        </div>
+        
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">📚</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.cours}}</div>
+                <div class="stat-label">Cours</div>
+            </div>
+            <div class="stat-badge">Planifiés</div>
+        </div>
+    </div>
+
+    <!-- Graphiques -->
+    <div class="charts-grid">
+        <!-- Répartition étudiants par département -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>📊 Étudiants par département</h3>
+            </div>
+            <canvas id="etudiantsChart"></canvas>
+        </div>
+
+        <!-- Cours par enseignant -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>📈 Cours par enseignant</h3>
+            </div>
+            <canvas id="coursChart"></canvas>
+        </div>
+
+        <!-- Évolution inscriptions -->
+        <div class="chart-card chart-full">
+            <div class="chart-header">
+                <h3>📉 Évolution des inscriptions</h3>
+            </div>
+            <canvas id="inscriptionsChart"></canvas>
+        </div>
+    </div>
+    {{/if}}
+    {{/if}}
+
+    {{#if (eq user.role 'directeur')}}
+    <!-- Dashboard DIRECTEUR - Vue département -->
+    {{#if stats}}
+    <!-- Statistiques du département -->
+    <div class="stats-grid">
+        <div class="stat-card stat-success">
+            <div class="stat-icon">👨‍🏫</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.enseignants}}</div>
+                <div class="stat-label">Enseignants</div>
+            </div>
+            <div class="stat-badge">Département</div>
+        </div>
+        
+        <div class="stat-card stat-info">
+            <div class="stat-icon">👨‍🎓</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.etudiants}}</div>
+                <div class="stat-label">Étudiants</div>
+            </div>
+            <div class="stat-badge">Inscrits</div>
+        </div>
+        
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">📚</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.cours}}</div>
+                <div class="stat-label">Cours</div>
+            </div>
+            <div class="stat-badge">Planifiés</div>
+        </div>
+
+        <div class="stat-card stat-danger">
+            <div class="stat-icon">⚠️</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.conflitsEnAttente}}</div>
+                <div class="stat-label">Conflits</div>
+            </div>
+            <div class="stat-badge">À résoudre</div>
+        </div>
+    </div>
+
+    <!-- Graphiques directeur -->
+    <div class="charts-grid">
+        <!-- Répartition étudiants par groupe -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h3>📊 Étudiants par groupe</h3>
+            </div>
+            <canvas id="etudiantsChart"></canvas>
+        </div>
+
+        <!-- Cours par enseignant -->
+        <div class="chart-card chart-full">
+            <div class="chart-header">
+                <h3>📈 Charge de travail des enseignants</h3>
+            </div>
+            <canvas id="coursChart"></canvas>
+        </div>
+    </div>
+    {{/if}}
+    {{/if}}
+
+    <!-- Cartes d'accès rapide -->
     <div class="dashboard-cards">
         {{#if (eq user.role 'admin')}}
-        <div class="card">
-            <h3>📚 Départements</h3>
+        <div class="card card-glass card-primary">
+            <div class="card-icon-animated">🏛️</div>
+            <h3>Départements</h3>
             <p>Gérer les départements de l'université</p>
-            <a href="/departements" class="btn">Accéder</a>
+            <a href="/departements" class="btn btn-card">Accéder</a>
         </div>
-        <div class="card">
-            <h3>👨‍🏫 Enseignants</h3>
+        
+        <div class="card card-glass card-success">
+            <div class="card-icon-animated">👨‍🏫</div>
+            <h3>Enseignants</h3>
             <p>Gérer la liste des enseignants</p>
-            <a href="/enseignants" class="btn">Accéder</a>
+            <a href="/enseignants" class="btn btn-card">Accéder</a>
         </div>
-        <div class="card">
-            <h3>👨‍🎓 Étudiants</h3>
+        
+        <div class="card card-glass card-info">
+            <div class="card-icon-animated">👨‍🎓</div>
+            <h3>Étudiants</h3>
             <p>Gérer la liste des étudiants</p>
-            <a href="/etudiants" class="btn">Accéder</a>
+            <a href="/etudiants" class="btn btn-card">Accéder</a>
         </div>
-        <div class="card">
-            <h3>🏢 Salles</h3>
-            <p>Gérer les salles de cours</p>
-            <a href="/salles" class="btn">Accéder</a>
+        
+        <div class="card card-glass card-warning">
+            <div class="card-icon-animated">📚</div>
+            <h3>Cours</h3>
+            <p>Planifier et gérer les cours</p>
+            <a href="/cours" class="btn btn-card">Accéder</a>
         </div>
         {{/if}}
 
         {{#if (eq user.role 'directeur')}}
-        <div class="card">
-            <h3>👨‍🏫 Enseignants</h3>
-            <p>Consulter les enseignants</p>
-            <a href="/enseignants" class="btn">Accéder</a>
+        <div class="card card-glass card-primary">
+            <div class="card-icon-animated">📅</div>
+            <h3>Emplois du temps</h3>
+            <p>Créer et modifier les emplois du temps</p>
+            <a href="/cours" class="btn btn-card">Gérer</a>
         </div>
-        <div class="card">
-            <h3>👨‍🎓 Étudiants</h3>
-            <p>Consulter les étudiants</p>
-            <a href="/etudiants" class="btn">Accéder</a>
+
+        <div class="card card-glass card-danger">
+            <div class="card-icon-animated">⚠️</div>
+            <h3>Conflits</h3>
+            <p>Résoudre les conflits d'emploi du temps</p>
+            <a href="/cours" class="btn btn-card">Voir conflits</a>
+        </div>
+        
+        <div class="card card-glass card-success">
+            <div class="card-icon-animated">👨‍🏫</div>
+            <h3>Enseignants</h3>
+            <p>Gérer les enseignants du département</p>
+            <a href="/enseignants" class="btn btn-card">Accéder</a>
+        </div>
+        
+        <div class="card card-glass card-info">
+            <div class="card-icon-animated">👨‍🎓</div>
+            <h3>Étudiants</h3>
+            <p>Suivi des étudiants et absences</p>
+            <a href="/etudiants" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-warning">
+            <div class="card-icon-animated">📚</div>
+            <h3>Matières & Groupes</h3>
+            <p>Administrer les matières et groupes</p>
+            <a href="/cours" class="btn btn-card">Gérer</a>
+        </div>
+
+        <div class="card card-glass card-secondary">
+            <div class="card-icon-animated">🏢</div>
+            <h3>Salles</h3>
+            <p>Occupation et disponibilité des salles</p>
+            <a href="/cours" class="btn btn-card">Voir disponibilités</a>
         </div>
         {{/if}}
 
         {{#if (eq user.role 'enseignant')}}
-        <div class="card">
-            <h3>📅 Mon emploi du temps</h3>
+        <div class="card card-glass card-primary">
+            <div class="card-icon-animated">📅</div>
+            <h3>Mon emploi du temps</h3>
             <p>Consulter mon planning</p>
-            <a href="#" class="btn">Bientôt disponible</a>
+            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
         </div>
-        <div class="card">
-            <h3>📝 Mes cours</h3>
+        
+        <div class="card card-glass card-success">
+            <div class="card-icon-animated">📝</div>
+            <h3>Mes cours</h3>
             <p>Gérer mes cours</p>
-            <a href="#" class="btn">Bientôt disponible</a>
+            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
         </div>
         {{/if}}
 
         {{#if (eq user.role 'etudiant')}}
-        <div class="card">
-            <h3>📅 Mon emploi du temps</h3>
-            <p>Consulter mon planning</p>
-            <a href="#" class="btn">Bientôt disponible</a>
+        <div class="card card-glass card-primary">
+            <div class="card-icon-animated">📅</div>
+            <h3>Mon emploi du temps</h3>
+            <p>Consulter mon planning hebdomadaire</p>
+            <a href="/emplois/mon" class="btn btn-card">Accéder</a>
         </div>
-        <div class="card">
-            <h3>📊 Mes notes</h3>
+        
+        <div class="card card-glass card-info">
+            <div class="card-icon-animated">📊</div>
+            <h3>Mes notes</h3>
             <p>Consulter mes résultats</p>
-            <a href="#" class="btn">Bientôt disponible</a>
+            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
         </div>
-        <div class="card">
-            <h3>❌ Mes absences</h3>
+        
+        <div class="card card-glass card-warning">
+            <div class="card-icon-animated">❌</div>
+            <h3>Mes absences</h3>
             <p>Consulter mes absences</p>
-            <a href="#" class="btn">Bientôt disponible</a>
+            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
         </div>
         {{/if}}
     </div>
 </div>
+
+{{#if (isIn user.role 'admin' 'directeur')}}
+{{#if stats}}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Données des graphiques
+const etudiantsData = {{{json stats.etudiantsParDept}}};
+const coursData = {{{json stats.coursParEnseignant}}};
+const inscriptionsData = {{{json stats.inscriptionsParMois}}};
+
+// Configuration commune
+const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+        legend: {
+            position: 'bottom',
+            labels: {
+                padding: 15,
+                font: { size: 12 }
+            }
+        }
+    }
+};
+
+// Graphique: Étudiants par département
+if (etudiantsData && etudiantsData.length > 0) {
+    new Chart(document.getElementById('etudiantsChart'), {
+        type: 'doughnut',
+        data: {
+            labels: etudiantsData.map(d => d.departement),
+            datasets: [{
+                data: etudiantsData.map(d => d.total),
+                backgroundColor: ['#1e3a8a', '#0891b2', '#059669', '#f59e0b', '#dc2626', '#7c3aed'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: commonOptions
+    });
+}
+
+// Graphique: Cours par enseignant
+if (coursData && coursData.length > 0) {
+    new Chart(document.getElementById('coursChart'), {
+        type: 'bar',
+        data: {
+            labels: coursData.map(d => d.enseignant),
+            datasets: [{
+                label: 'Nombre de cours',
+                data: coursData.map(d => d.total),
+                backgroundColor: '#1e3a8a',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+}
+
+// Graphique: Évolution inscriptions
+if (inscriptionsData && inscriptionsData.length > 0) {
+    new Chart(document.getElementById('inscriptionsChart'), {
+        type: 'line',
+        data: {
+            labels: inscriptionsData.map(d => d.mois),
+            datasets: [{
+                label: 'Inscriptions',
+                data: inscriptionsData.map(d => d.total),
+                borderColor: '#0891b2',
+                backgroundColor: 'rgba(8, 145, 178, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            ...commonOptions,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 }
+                }
+            }
+        }
+    });
+}
+</script>
+{{/if}}
+{{/if}}

@@ -1,0 +1,101 @@
+<div class="page-header">
+    <h1>Planifier un cours</h1>
+    <a href="/cours" class="btn btn-secondary">← Retour à la liste</a>
+</div>
+
+{{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+{{/if}}
+
+{{#if conflicts}}
+    <div class="alert alert-warning">
+        <strong>⚠️ Conflits détectés :</strong>
+        <ul style="margin-left: 20px; margin-top: 10px;">
+            {{#each conflicts}}
+                <li>
+                    {{jour}} {{heure_debut}} - {{heure_fin}} : {{titre}}
+                    ({{groupe}}, {{enseignant}}, {{salle}})
+                </li>
+            {{/each}}
+        </ul>
+        <p style="margin-top: 10px;">Veuillez ajuster l'horaire, la salle ou l'enseignant avant de valider.</p>
+    </div>
+{{/if}}
+
+<div class="form-container">
+    <form action="/cours/create" method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label for="titre">Intitulé du cours *</label>
+            <input type="text" id="titre" name="titre" value="{{form.titre}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="type_cours">Type de cours *</label>
+            <select id="type_cours" name="type_cours" required>
+                {{#each typeOptions}}
+                    <option value="{{this.value}}" {{#if (eq ../form.type_cours this.value)}}selected{{/if}}>{{this.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" placeholder="Ajoutez des informations complémentaires (optionnel)">{{form.description}}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="id_enseignant">Enseignant *</label>
+            <select id="id_enseignant" name="id_enseignant" required>
+                <option value="">Sélectionnez un enseignant</option>
+                {{#each enseignants}}
+                    <option value="{{this.id}}" {{#if (eq ../form.id_enseignant this.id)}}selected{{/if}}>{{this.prenom}} {{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_groupe">Groupe *</label>
+            <select id="id_groupe" name="id_groupe" required>
+                <option value="">Sélectionnez un groupe</option>
+                {{#each groupes}}
+                    <option value="{{this.id}}" {{#if (eq ../form.id_groupe this.id)}}selected{{/if}}>{{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_salle">Salle *</label>
+            <select id="id_salle" name="id_salle" required>
+                <option value="">Sélectionnez une salle</option>
+                {{#each salles}}
+                    <option value="{{this.id}}" {{#if (eq ../form.id_salle this.id)}}selected{{/if}}>{{#if this.nom}}{{this.nom}} ({{this.code}}){{else}}{{this.code}}{{/if}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="jour">Jour *</label>
+            <select id="jour" name="jour" required>
+                {{#each dayOptions}}
+                    <option value="{{this.value}}" {{#if (eq ../form.jour this.value)}}selected{{/if}}>{{this.label}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+            <div>
+                <label for="heure_debut">Heure de début *</label>
+                <input type="time" id="heure_debut" name="heure_debut" value="{{form.heure_debut}}" required>
+            </div>
+            <div>
+                <label for="heure_fin">Heure de fin *</label>
+                <input type="time" id="heure_fin" name="heure_fin" value="{{form.heure_fin}}" required>
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Enregistrer le cours</button>
+            <a href="/cours" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
