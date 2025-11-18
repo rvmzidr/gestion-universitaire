@@ -23,11 +23,14 @@ class Cours {
                    g.nom AS groupe_nom,
                    s.nom AS salle_nom,
                    s.code AS salle_code,
-                   sp.nom AS specialite_nom
+                   sp.nom AS specialite_nom,
+                   d.id AS departement_id,
+                   d.nom AS departement_nom
             FROM cours c
             LEFT JOIN enseignants e ON c.id_enseignant = e.id
             LEFT JOIN groupes g ON c.id_groupe = g.id
             LEFT JOIN specialites sp ON g.id_specialite = sp.id
+            LEFT JOIN departements d ON sp.id_departement = d.id
             LEFT JOIN salles s ON c.id_salle = s.id
             ${whereClause}
             ORDER BY FIELD(c.jour, 'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'), c.heure_debut

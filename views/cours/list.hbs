@@ -38,6 +38,8 @@
                 <th>Type</th>
                 <th>Enseignant</th>
                 <th>Groupe</th>
+                <th>Spécialité</th>
+                <th>Département</th>
                 <th>Salle</th>
                 <th>Jour</th>
                 <th>Horaire</th>
@@ -64,6 +66,8 @@
                         {{/if}}
                     </td>
                     <td>{{#if this.groupe_nom}}{{this.groupe_nom}}{{else}}<span style="color: var(--text-muted);">À affecter</span>{{/if}}</td>
+                    <td>{{this.specialite_label}}</td>
+                    <td>{{this.departement_label}}</td>
                     <td>{{#if this.salle_nom}}{{this.salle_nom}}{{else if this.salle_code}}{{this.salle_code}}{{else}}<span style="color: var(--text-muted);">À affecter</span>{{/if}}</td>
                     <td>{{this.jour_label}}</td>
                     <td>{{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</td>
@@ -78,7 +82,7 @@
                 </tr>
             {{else}}
                 <tr>
-                    <td colspan="{{#if (eq user.role 'admin')}}8{{else}}7{{/if}}" class="text-center">Aucun cours planifié pour le moment.</td>
+                    <td colspan="{{#if (eq user.role 'admin')}}10{{else}}9{{/if}}" class="text-center">Aucun cours planifié pour le moment.</td>
                 </tr>
             {{/each}}
         </tbody>

@@ -7,6 +7,33 @@
     <div class="alert alert-error">{{error}}</div>
 {{/if}}
 
+{{#if enseignant}}
+    {{#if groupe}}
+        <div class="alert alert-info" style="margin-bottom: 20px;">
+            <strong>Départements détectés :</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li>
+                    Enseignant : {{enseignant.prenom}} {{enseignant.nom}} —
+                    Département :
+                    {{#if enseignant.departement_nom}}
+                        {{enseignant.departement_nom}}
+                    {{else}}
+                        Non défini
+                    {{/if}}
+                </li>
+                <li>
+                    Groupe : {{groupe.nom}} —
+                    Spécialité : {{#if groupe.specialite_nom}}{{groupe.specialite_nom}}{{else}}Non définie{{/if}}
+                    {{#if groupe.departement_nom}}
+                        (Département : {{groupe.departement_nom}})
+                    {{/if}}
+                </li>
+            </ul>
+            <p style="margin-top: 10px;">Vérifiez que l'enseignant et le groupe appartiennent au même département avant de valider.</p>
+        </div>
+    {{/if}}
+{{/if}}
+
 {{#if conflicts}}
     <div class="alert alert-warning">
         <strong>⚠️ Conflits détectés :</strong>

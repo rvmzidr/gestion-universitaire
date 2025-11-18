@@ -2,6 +2,7 @@ const Cours = require('../models/Cours');
 const Enseignant = require('../models/Enseignant');
 const Groupe = require('../models/Groupe');
 const Salle = require('../models/Salle');
+const db = require('../config/database');
 
 const DAY_OPTIONS = [
     { value: 'lundi', label: 'Lundi' },
@@ -50,7 +51,9 @@ class CoursController {
                 type_label: typeLabels[item.type_cours] || item.type_cours,
                 jour_label: dayLabels[item.jour] || item.jour,
                 heure_debut_affiche: item.heure_debut ? item.heure_debut.slice(0, 5) : '',
-                heure_fin_affiche: item.heure_fin ? item.heure_fin.slice(0, 5) : ''
+                heure_fin_affiche: item.heure_fin ? item.heure_fin.slice(0, 5) : '',
+                specialite_label: item.specialite_nom || 'Non définie',
+                departement_label: item.departement_nom || 'Non défini'
             }));
             res.render('cours/list', {
                 layout: 'main',
@@ -79,7 +82,7 @@ class CoursController {
             });
         }
         try {
-            const formData = await this._getFormDependencies();
+            const formData = await CoursController._getFormDependencies();
             res.render('cours/create', {
                 layout: 'main',
                 title: 'Planifier un cours',
@@ -108,16 +111,22 @@ class CoursController {
             });
         }
         const payload = CoursController._extractPayload(req.body);
-        const formData = await this._getFormDependencies();
+        const formData = await CoursController._getFormDependencies();
 
         const validationErrors = CoursController._validate(payload);
-        if (validationErrors.length) {
+        const departmentCheck = await CoursController._validateDepartmentConsistency(payload);
+        const { errors: consistencyErrors, enseignant, groupe } = departmentCheck;
+        const allErrors = [...validationErrors, ...consistencyErrors];
+
+        if (allErrors.length) {
             return res.render('cours/create', {
                 layout: 'main',
                 title: 'Planifier un cours',
                 ...formData,
                 form: req.body,
-                error: validationErrors.join('\n')
+                error: allErrors.join('\n'),
+                enseignant,
+                groupe
             });
         }
 
@@ -146,12 +155,19 @@ class CoursController {
             res.redirect('/cours?success=create');
         } catch (error) {
             console.error('Erreur lors de la création du cours:', error);
+            const debugInfo = {
+                payload,
+                erreur: error.message
+            };
+            console.error('Détails création cours:', debugInfo);
             res.render('cours/create', {
                 layout: 'main',
                 title: 'Planifier un cours',
                 ...formData,
                 form: req.body,
-                error: 'Erreur lors de la création du cours. Veuillez réessayer.'
+                error: 'Erreur lors de la création du cours. Veuillez réessayer.',
+                enseignant,
+                groupe
             });
         }
     }
@@ -174,7 +190,7 @@ class CoursController {
                 });
             }
 
-            const formData = await this._getFormDependencies();
+            const formData = await CoursController._getFormDependencies();
             res.render('cours/edit', {
                 layout: 'main',
                 title: 'Modifier un cours',
@@ -208,16 +224,22 @@ class CoursController {
         }
         const { id } = req.params;
         const payload = CoursController._extractPayload(req.body);
-        const formData = await this._getFormDependencies();
+        const formData = await CoursController._getFormDependencies();
 
         const validationErrors = CoursController._validate(payload);
-        if (validationErrors.length) {
+        const departmentCheck = await CoursController._validateDepartmentConsistency(payload);
+        const { errors: consistencyErrors, enseignant, groupe } = departmentCheck;
+        const allErrors = [...validationErrors, ...consistencyErrors];
+
+        if (allErrors.length) {
             return res.render('cours/edit', {
                 layout: 'main',
                 title: 'Modifier un cours',
                 ...formData,
                 form: { ...req.body, id },
-                error: validationErrors.join('\n')
+                error: allErrors.join('\n'),
+                enseignant,
+                groupe
             });
         }
 
@@ -247,12 +269,19 @@ class CoursController {
             res.redirect('/cours?success=update');
         } catch (error) {
             console.error('Erreur lors de la mise à jour du cours:', error);
+            const debugInfo = {
+                payload,
+                erreur: error.message
+            };
+            console.error('Détails mise à jour cours:', debugInfo);
             res.render('cours/edit', {
                 layout: 'main',
                 title: 'Modifier un cours',
                 ...formData,
                 form: { ...req.body, id },
-                error: 'Erreur lors de la mise à jour du cours. Veuillez réessayer.'
+                error: 'Erreur lors de la mise à jour du cours. Veuillez réessayer.',
+                enseignant,
+                groupe
             });
         }
     }
@@ -329,6 +358,63 @@ class CoursController {
         }
 
         return errors;
+    }
+
+    static async _validateDepartmentConsistency(payload) {
+        const result = {
+            errors: [],
+            enseignant: null,
+            groupe: null
+        };
+
+        if (!payload.id_enseignant || !payload.id_groupe) {
+            return result;
+        }
+
+        try {
+            const [enseignantRows] = await db.query(
+                `SELECT e.id, e.nom, e.prenom, e.id_departement, d.nom AS departement_nom
+                 FROM enseignants e
+                 LEFT JOIN departements d ON e.id_departement = d.id
+                 WHERE e.id = ?`,
+                [payload.id_enseignant]
+            );
+            result.enseignant = enseignantRows[0] || null;
+
+            const [groupeRows] = await db.query(`
+                SELECT g.id, g.nom, g.id_specialite,
+                       s.id_departement AS specialite_departement,
+                       s.nom AS specialite_nom,
+                       d.nom AS departement_nom
+                FROM groupes g
+                LEFT JOIN specialites s ON g.id_specialite = s.id
+                LEFT JOIN departements d ON s.id_departement = d.id
+                WHERE g.id = ?
+            `, [payload.id_groupe]);
+            result.groupe = groupeRows[0] || null;
+
+            if (!result.enseignant) {
+                result.errors.push('Enseignant sélectionné introuvable.');
+                return result;
+            }
+
+            if (!result.groupe) {
+                result.errors.push('Groupe sélectionné introuvable.');
+                return result;
+            }
+
+            const enseignantDepartement = result.enseignant.id_departement || null;
+            const groupeDepartement = result.groupe.specialite_departement || null;
+
+            if (enseignantDepartement && groupeDepartement && enseignantDepartement !== groupeDepartement) {
+                result.errors.push('L\'enseignant sélectionné est rattaché à un département différent de celui du groupe.');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la vérification des départements:', error);
+            result.errors.push('Impossible de vérifier la cohérence des départements.');
+        }
+
+        return result;
     }
 
     static _formatConflicts(conflicts) {
