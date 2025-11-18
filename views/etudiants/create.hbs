@@ -32,11 +32,21 @@
         </div>
 
         <div class="form-group">
+            <label for="id_departement">Département :</label>
+            <select id="id_departement" name="id_departement">
+                <option value="">Sélectionnez un département</option>
+                {{#each departements}}
+                <option value="{{this.id}}" {{#if (eq ../data.id_departement this.id)}}selected{{/if}}>{{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
             <label for="id_specialite">Spécialité :</label>
             <select id="id_specialite" name="id_specialite" required>
                 <option value="">Sélectionnez une spécialité</option>
                 {{#each specialites}}
-                <option value="{{this.id}}">{{this.nom}}</option>
+                <option value="{{this.id}}" data-departement="{{this.id_departement}}" data-code="{{this.code}}" data-nom="{{this.nom}}" {{#if (eq ../data.id_specialite this.id)}}selected{{/if}}>{{#if this.departement_nom}}{{this.departement_nom}} — {{/if}}{{this.nom}}{{#if this.code}} ({{this.code}}){{/if}}</option>
                 {{/each}}
             </select>
         </div>
@@ -46,7 +56,7 @@
             <select id="id_groupe" name="id_groupe" required>
                 <option value="">Sélectionnez un groupe</option>
                 {{#each groupes}}
-                <option value="{{this.id}}">{{this.nom}}</option>
+                <option value="{{this.id}}" data-specialite="{{this.id_specialite}}" data-code="{{this.code}}" data-nom="{{this.nom}}" {{#if (eq ../data.id_groupe this.id)}}selected{{/if}}>{{this.nom}}{{#if this.code}} ({{this.code}}){{/if}}</option>
                 {{/each}}
             </select>
         </div>
@@ -55,3 +65,14 @@
             <button type="submit" class="btn btn-primary">Créer</button>
             <a href="/etudiants" class="btn btn-secondary">Annuler</a>
         </div>
+    </form>
+</div>
+
+<script>
+    window.__ETUDIANT_FORM_DATA__ = {
+        departementId: '{{data.id_departement}}',
+        specialiteId: '{{data.id_specialite}}',
+        groupeId: '{{data.id_groupe}}'
+    };
+</script>
+<script src="/js/etudiants-form.js" defer></script>

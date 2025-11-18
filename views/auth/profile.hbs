@@ -1,0 +1,42 @@
+<div class="page-header">
+    <h1>Mon Profil</h1>
+    <a href="/dashboard" class="btn btn-secondary">← Retour au tableau de bord</a>
+</div>
+
+{{#if user}}
+<div class="card" style="padding: 20px; margin-top: 20px;">
+    <h2 style="margin-bottom: 15px;">Informations personnelles</h2>
+    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
+        <div>
+            <strong>Nom</strong>
+            <p>{{user.nom}}</p>
+        </div>
+        <div>
+            <strong>Prénom</strong>
+            <p>{{user.prenom}}</p>
+        </div>
+        <div>
+            <strong>Email</strong>
+            <p>{{user.email}}</p>
+        </div>
+        <div>
+            <strong>Identifiant</strong>
+            <p>{{user.login}}</p>
+        </div>
+        <div>
+            <strong>Rôle</strong>
+            <p>{{user.role}}</p>
+        </div>
+        {{#if user.id_departement}}
+        <div>
+            <strong>Département associé</strong>
+            <p>{{user.id_departement}}</p>
+        </div>
+        {{/if}}
+    </div>
+</div>
+{{else}}
+<div class="alert alert-warning" style="margin-top: 20px;">
+    Impossible de charger les informations de votre profil pour le moment.
+</div>
+{{/if}}

@@ -1,9 +1,11 @@
 <div class="page-header">
     <h1>Liste des enseignants</h1>
+    {{#if (eq user.role 'admin')}}
     <div style="display: flex; gap: 10px;">
         <a href="/enseignants/create" class="btn btn-primary">+ Ajouter un enseignant</a>
         <a href="/enseignants/import" class="btn btn-info">📥 Importer CSV</a>
     </div>
+    {{/if}}
 </div>
 
 {{#if success}}
@@ -11,6 +13,12 @@
     {{#if (eq success 'create')}}Enseignant créé avec succès{{/if}}
     {{#if (eq success 'update')}}Enseignant modifié avec succès{{/if}}
     {{#if (eq success 'delete')}}Enseignant supprimé avec succès{{/if}}
+</div>
+{{/if}}
+
+{{#if missingDepartement}}
+<div class="alert alert-warning">
+    Aucun département n'est associé à votre compte directeur. Contactez un administrateur pour terminer la configuration.
 </div>
 {{/if}}
 
@@ -23,7 +31,9 @@
                 <th>Email</th>
                 <th>Téléphone</th>
                 <th>Département</th>
+                {{#if (eq user.role 'admin')}}
                 <th>Actions</th>
+                {{/if}}
             </tr>
         </thead>
         <tbody>
@@ -34,6 +44,7 @@
                 <td>{{this.email}}</td>
                 <td>{{this.telephone}}</td>
                 <td>{{this.departement_nom}}</td>
+                {{#if (eq ../user.role 'admin')}}
                 <td class="actions">
                     <a href="/enseignants/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
                     <form action="/enseignants/delete/{{this.id}}" method="POST" style="display:inline;" 
@@ -41,10 +52,11 @@
                         <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
                     </form>
                 </td>
+                {{/if}}
             </tr>
             {{else}}
             <tr>
-                <td colspan="6" class="text-center">Aucun enseignant trouvé</td>
+                <td colspan="{{#if (eq user.role 'admin')}}6{{else}}5{{/if}}" class="text-center">Aucun enseignant trouvé</td>
             </tr>
             {{/each}}
         </tbody>

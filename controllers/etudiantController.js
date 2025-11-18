@@ -7,11 +7,25 @@ const path = require('path');
 class EtudiantController {
     static async index(req, res) {
         try {
-            const etudiants = await Etudiant.findAll();
+            const isDirector = req.user && req.user.role === 'directeur';
+            let etudiants = [];
+            let missingDepartement = false;
+
+            if (isDirector) {
+                const directorDepartementId = req.user.id_departement || null;
+                if (directorDepartementId) {
+                    etudiants = await Etudiant.findAllByDepartement(directorDepartementId);
+                } else {
+                    missingDepartement = true;
+                }
+            } else {
+                etudiants = await Etudiant.findAll();
+            }
             res.render('etudiants/list', {
                 layout: 'main',
                 title: 'Liste des étudiants',
-                etudiants
+                etudiants,
+                missingDepartement
             });
         } catch (error) {
             console.error(error);
@@ -19,13 +33,49 @@ class EtudiantController {
         }
     }
 
-    static async showCreate(req, res) {
+    static async resolveNiveauFromGroupe(groupeId) {
+        if (!groupeId) {
+            return null;
+        }
+
+        const parsedId = Number.parseInt(groupeId, 10);
+        if (Number.isNaN(parsedId)) {
+            return null;
+        }
+
         try {
+            const [rows] = await db.query('SELECT id_niveau FROM groupes WHERE id = ?', [parsedId]);
+            if (!rows.length) {
+                return null;
+            }
+            return rows[0].id_niveau ?? null;
+        } catch (error) {
+            console.error('Erreur lors de la récupération du niveau du groupe:', error);
+            return null;
+        }
+    }
+
+    static async showCreate(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
+        try {
+            const [departements] = await db.query('SELECT id, nom FROM departements ORDER BY nom');
+            const [specialites] = await db.query(`
+                SELECT s.*, d.nom AS departement_nom
+                FROM specialites s
+                LEFT JOIN departements d ON s.id_departement = d.id
+                ORDER BY d.nom, s.nom
+            `);
             const [groupes] = await db.query('SELECT * FROM groupes ORDER BY nom');
-            const [specialites] = await db.query('SELECT * FROM specialites ORDER BY nom');
             res.render('etudiants/create', {
                 layout: 'main',
                 title: 'Ajouter un étudiant',
+                departements,
                 groupes,
                 specialites
             });
@@ -36,17 +86,40 @@ class EtudiantController {
     }
 
     static async create(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
-            await Etudiant.create(req.body);
+            const idNiveau = await EtudiantController.resolveNiveauFromGroupe(req.body.id_groupe);
+
+            const payload = {
+                ...req.body,
+                id_groupe: req.body.id_groupe ? Number.parseInt(req.body.id_groupe, 10) || null : null,
+                id_specialite: req.body.id_specialite ? Number.parseInt(req.body.id_specialite, 10) || null : null,
+                id_niveau: idNiveau
+            };
+
+            await Etudiant.create(payload);
             res.redirect('/etudiants?success=create');
         } catch (error) {
             console.error(error);
+            const [departements] = await db.query('SELECT id, nom FROM departements ORDER BY nom');
+            const [specialites] = await db.query(`
+                SELECT s.*, d.nom AS departement_nom
+                FROM specialites s
+                LEFT JOIN departements d ON s.id_departement = d.id
+                ORDER BY d.nom, s.nom
+            `);
             const [groupes] = await db.query('SELECT * FROM groupes ORDER BY nom');
-            const [specialites] = await db.query('SELECT * FROM specialites ORDER BY nom');
             res.render('etudiants/create', {
                 layout: 'main',
                 title: 'Ajouter un étudiant',
-                error: 'Erreur lors de la création',
+                error: `Erreur lors de la création: ${error.message}`,
+                departements,
                 groupes,
                 specialites,
                 data: req.body
@@ -55,6 +128,13 @@ class EtudiantController {
     }
 
     static async showEdit(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const etudiant = await Etudiant.findById(req.params.id);
             const [groupes] = await db.query('SELECT * FROM groupes ORDER BY nom');
@@ -76,8 +156,24 @@ class EtudiantController {
     }
 
     static async update(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
-            await Etudiant.update(req.params.id, req.body);
+            const idNiveau = await EtudiantController.resolveNiveauFromGroupe(req.body.id_groupe);
+
+            const payload = {
+                ...req.body,
+                id_groupe: req.body.id_groupe ? Number.parseInt(req.body.id_groupe, 10) || null : null,
+                id_specialite: req.body.id_specialite ? Number.parseInt(req.body.id_specialite, 10) || null : null,
+                id_niveau: idNiveau
+            };
+
+            await Etudiant.update(req.params.id, payload);
             res.redirect('/etudiants?success=update');
         } catch (error) {
             console.error(error);
@@ -86,6 +182,13 @@ class EtudiantController {
     }
 
     static async delete(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             await Etudiant.delete(req.params.id);
             res.redirect('/etudiants?success=delete');
@@ -97,6 +200,13 @@ class EtudiantController {
 
     // Afficher la page d'importation CSV
     static async showImport(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const [groupes] = await db.query('SELECT * FROM groupes ORDER BY nom');
             const [specialites] = await db.query('SELECT * FROM specialites ORDER BY nom');
@@ -115,6 +225,13 @@ class EtudiantController {
 
     // Importer des étudiants depuis un fichier CSV
     static async importCSV(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         if (!req.file) {
             const [groupes] = await db.query('SELECT * FROM groupes ORDER BY nom');
             const [specialites] = await db.query('SELECT * FROM specialites ORDER BY nom');
@@ -145,10 +262,15 @@ class EtudiantController {
             const specialiteMap = {};
 
             groupes.forEach(groupe => {
-                const keys = [groupe.nom, groupe.code, groupe.type].map(normalize).filter(Boolean);
+                const value = {
+                    id: groupe.id,
+                    id_niveau: groupe.id_niveau ?? null
+                };
+
+                const keys = [groupe.nom, groupe.code, groupe.type, String(groupe.id)].map(normalize).filter(Boolean);
                 keys.forEach(key => {
                     if (!groupeMap[key]) {
-                        groupeMap[key] = groupe.id;
+                        groupeMap[key] = value;
                     }
                 });
             });
@@ -198,11 +320,14 @@ class EtudiantController {
                         }
 
                         const groupeName = normalize(data.groupe);
-                        const groupeId = groupeMap[groupeName];
-                        if (!groupeId) {
+                        const groupeInfo = groupeMap[groupeName];
+                        if (!groupeInfo) {
                             errors.push(`Ligne ${lineNumber}: Groupe "${data.groupe}" non trouvé`);
                             return;
                         }
+
+                        const groupeId = groupeInfo.id;
+                        const groupeNiveau = groupeInfo.id_niveau ?? null;
 
                         // Trouver l'ID de la spécialité
                         let specialiteId = null;
@@ -224,7 +349,8 @@ class EtudiantController {
                             telephone: data.telephone ? data.telephone.trim() : null,
                             adresse: data.adresse ? data.adresse.trim() : null,
                             id_groupe: groupeId,
-                            id_specialite: specialiteId
+                            id_specialite: specialiteId,
+                            id_niveau: groupeNiveau
                         });
                     })
                     .on('end', resolve)
@@ -279,6 +405,12 @@ class EtudiantController {
 
     // Télécharger un modèle CSV
     static downloadTemplate(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         const csvContent = 'nom,prenom,email,numero_etudiant,date_naissance,telephone,adresse,groupe,specialite\n' +
                           'Dupont,Jean,jean.dupont@etudiant.fr,E12345,2000-05-15,0123456789,123 Rue de Paris,Groupe A,Informatique\n' +
                           'Martin,Marie,marie.martin@etudiant.fr,E12346,2001-08-20,0987654321,456 Avenue des Champs,Groupe B,Mathématiques\n';

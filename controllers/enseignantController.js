@@ -7,11 +7,26 @@ const path = require('path');
 class EnseignantController {
     static async index(req, res) {
         try {
-            const enseignants = await Enseignant.findAll();
+            const isDirector = req.user && req.user.role === 'directeur';
+            let enseignants = [];
+            let missingDepartement = false;
+
+            if (isDirector) {
+                const directorDepartementId = req.user.id_departement || null;
+                if (directorDepartementId) {
+                    enseignants = await Enseignant.findByDepartement(directorDepartementId);
+                } else {
+                    missingDepartement = true;
+                }
+            } else {
+                enseignants = await Enseignant.findAll();
+            }
+
             res.render('enseignants/list', {
                 layout: 'main',
                 title: 'Liste des enseignants',
-                enseignants
+                enseignants,
+                missingDepartement
             });
         } catch (error) {
             console.error(error);
@@ -20,6 +35,13 @@ class EnseignantController {
     }
 
     static async showCreate(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const departements = await Departement.findAll();
             res.render('enseignants/create', {
@@ -34,6 +56,13 @@ class EnseignantController {
     }
 
     static async create(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             await Enseignant.create(req.body);
             res.redirect('/enseignants?success=create');
@@ -51,6 +80,13 @@ class EnseignantController {
     }
 
     static async showEdit(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const enseignant = await Enseignant.findById(req.params.id);
             const departements = await Departement.findAll();
@@ -70,6 +106,13 @@ class EnseignantController {
     }
 
     static async update(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             await Enseignant.update(req.params.id, req.body);
             res.redirect('/enseignants?success=update');
@@ -80,6 +123,13 @@ class EnseignantController {
     }
 
     static async delete(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             await Enseignant.delete(req.params.id);
             res.redirect('/enseignants?success=delete');
@@ -91,6 +141,13 @@ class EnseignantController {
 
     // Afficher la page d'importation CSV
     static async showImport(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const departements = await Departement.findAll();
             res.render('enseignants/import', {
@@ -107,6 +164,13 @@ class EnseignantController {
 
     // Importer des enseignants depuis un fichier CSV
     static async importCSV(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         if (!req.file) {
             const departements = await Departement.findAll();
             return res.render('enseignants/import', {
@@ -233,6 +297,13 @@ class EnseignantController {
 
     // Télécharger un modèle CSV
     static downloadTemplate(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         const csvContent = 'nom,prenom,email,telephone,specialite,departement\n' +
                           'Dupont,Jean,jean.dupont@universite.fr,0123456789,Programmation,Informatique\n' +
                           'Martin,Marie,marie.martin@universite.fr,0987654321,Algèbre,Mathématiques\n';

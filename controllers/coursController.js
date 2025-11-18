@@ -23,7 +23,20 @@ const TYPE_OPTIONS = [
 class CoursController {
     static async index(req, res) {
         try {
-            const cours = await Cours.findAllWithDetails();
+            const isDirector = req.user && req.user.role === 'directeur';
+            let missingDepartement = false;
+            let cours = [];
+
+            if (isDirector) {
+                const directorDepartementId = req.user.id_departement || null;
+                if (directorDepartementId) {
+                    cours = await Cours.findAllWithDetails({ id_departement: directorDepartementId });
+                } else {
+                    missingDepartement = true;
+                }
+            } else {
+                cours = await Cours.findAllWithDetails();
+            }
             const typeLabels = TYPE_OPTIONS.reduce((acc, option) => {
                 acc[option.value] = option.label;
                 return acc;
@@ -44,7 +57,8 @@ class CoursController {
                 title: 'Gestion des cours',
                 cours: coursView,
                 dayOptions: DAY_OPTIONS,
-                typeOptions: TYPE_OPTIONS
+                typeOptions: TYPE_OPTIONS,
+                missingDepartement
             });
         } catch (error) {
             console.error('Erreur lors du chargement des cours:', error);
@@ -57,6 +71,13 @@ class CoursController {
     }
 
     static async showCreate(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const formData = await this._getFormDependencies();
             res.render('cours/create', {
@@ -79,6 +100,13 @@ class CoursController {
     }
 
     static async create(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         const payload = CoursController._extractPayload(req.body);
         const formData = await this._getFormDependencies();
 
@@ -129,6 +157,13 @@ class CoursController {
     }
 
     static async showEdit(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             const cours = await Cours.findById(req.params.id);
             if (!cours) {
@@ -164,6 +199,13 @@ class CoursController {
     }
 
     static async update(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         const { id } = req.params;
         const payload = CoursController._extractPayload(req.body);
         const formData = await this._getFormDependencies();
@@ -216,6 +258,13 @@ class CoursController {
     }
 
     static async delete(req, res) {
+        if (!req.user || req.user.role !== 'admin') {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Accès réservé aux administrateurs'
+            });
+        }
         try {
             await Cours.delete(req.params.id);
             res.redirect('/cours?success=delete');

@@ -49,7 +49,11 @@ class Enseignant {
 
     static async findByDepartement(id_departement) {
         const [rows] = await db.query(
-            'SELECT * FROM enseignants WHERE id_departement = ? ORDER BY nom, prenom',
+            `SELECT e.*, d.nom as departement_nom
+             FROM enseignants e
+             LEFT JOIN departements d ON e.id_departement = d.id
+             WHERE e.id_departement = ?
+             ORDER BY e.nom, e.prenom`,
             [id_departement]
         );
         return rows;

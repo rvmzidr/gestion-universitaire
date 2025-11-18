@@ -1,20 +1,37 @@
 const db = require('../config/database');
 
 class Cours {
-    static async findAllWithDetails() {
+    static async findAllWithDetails(options = {}) {
+        const filters = [];
+        const params = [];
+
+        if (options.id_departement) {
+            filters.push(`(
+                (e.id_departement IS NOT NULL AND e.id_departement = ?)
+                OR
+                (sp.id_departement IS NOT NULL AND sp.id_departement = ?)
+            )`);
+            params.push(options.id_departement, options.id_departement);
+        }
+
+        const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
+
         const [rows] = await db.query(`
-            SELECT c.*, 
+            SELECT c.*,
                    e.nom AS enseignant_nom,
                    e.prenom AS enseignant_prenom,
                    g.nom AS groupe_nom,
                    s.nom AS salle_nom,
-                   s.code AS salle_code
+                   s.code AS salle_code,
+                   sp.nom AS specialite_nom
             FROM cours c
             LEFT JOIN enseignants e ON c.id_enseignant = e.id
             LEFT JOIN groupes g ON c.id_groupe = g.id
+            LEFT JOIN specialites sp ON g.id_specialite = sp.id
             LEFT JOIN salles s ON c.id_salle = s.id
+            ${whereClause}
             ORDER BY FIELD(c.jour, 'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'), c.heure_debut
-        `);
+        `, params);
         return rows;
     }
 

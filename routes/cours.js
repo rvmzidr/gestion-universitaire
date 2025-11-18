@@ -4,9 +4,11 @@ const CoursController = require('../controllers/coursController');
 const { authMiddleware, checkRole } = require('../middleware/authMiddleware');
 
 router.use(authMiddleware);
-router.use(checkRole('admin', 'directeur'));
 
-router.get('/', CoursController.index);
+router.get('/', checkRole('admin', 'directeur'), CoursController.index);
+
+router.use(checkRole('admin'));
+
 router.get('/create', CoursController.showCreate);
 router.post('/create', CoursController.create);
 router.get('/edit/:id', CoursController.showEdit);

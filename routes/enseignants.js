@@ -5,9 +5,11 @@ const { authMiddleware, checkRole } = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 
 router.use(authMiddleware);
-router.use(checkRole('admin', 'directeur'));
 
-router.get('/', EnseignantController.index);
+router.get('/', checkRole('admin', 'directeur'), EnseignantController.index);
+
+router.use(checkRole('admin'));
+
 router.get('/create', EnseignantController.showCreate);
 router.post('/create', EnseignantController.create);
 router.get('/edit/:id', EnseignantController.showEdit);

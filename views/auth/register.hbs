@@ -9,22 +9,22 @@
         <form action="/auth/register" method="POST">
             <div class="form-group">
                 <label for="nom">Nom :</label>
-                <input type="text" id="nom" name="nom" required>
+                <input type="text" id="nom" name="nom" value="{{formData.nom}}" required>
             </div>
 
             <div class="form-group">
                 <label for="prenom">Prénom :</label>
-                <input type="text" id="prenom" name="prenom" required>
+                <input type="text" id="prenom" name="prenom" value="{{formData.prenom}}" required>
             </div>
 
             <div class="form-group">
                 <label for="email">Email :</label>
-                <input type="email" id="email" name="email" required>
+                <input type="email" id="email" name="email" value="{{formData.email}}" required>
             </div>
 
             <div class="form-group">
                 <label for="login">Login :</label>
-                <input type="text" id="login" name="login" required>
+                <input type="text" id="login" name="login" value="{{formData.login}}" required>
             </div>
 
             <div class="form-group">
@@ -35,12 +35,22 @@
             <div class="form-group">
                 <label for="role">Rôle :</label>
                 <select id="role" name="role" required>
-                    <option value="etudiant">Étudiant</option>
-                    <option value="enseignant">Enseignant</option>
-                    <option value="directeur">Directeur</option>
+                    <option value="etudiant" {{#if (eq formData.role 'etudiant')}}selected{{/if}}>Étudiant</option>
+                    <option value="enseignant" {{#if (eq formData.role 'enseignant')}}selected{{/if}}>Enseignant</option>
+                    <option value="directeur" {{#if (eq formData.role 'directeur')}}selected{{/if}}>Directeur</option>
                     {{#if isAdmin}}
-                    <option value="admin">Administrateur</option>
+                    <option value="admin" {{#if (eq formData.role 'admin')}}selected{{/if}}>Administrateur</option>
                     {{/if}}
+                </select>
+            </div>
+
+            <div class="form-group" id="departement-field" style="display: none;">
+                <label for="id_departement">Département :</label>
+                <select id="id_departement" name="id_departement">
+                    <option value="">Sélectionnez un département</option>
+                    {{#each departements}}
+                    <option value="{{this.id}}" {{#if (eq ../formData.id_departement this.id)}}selected{{/if}}>{{this.nom}}</option>
+                    {{/each}}
                 </select>
             </div>
 
@@ -52,3 +62,30 @@
         </p>
     </div>
 </div>
+
+<script>
+    (function () {
+        const roleSelect = document.getElementById('role');
+        const departementField = document.getElementById('departement-field');
+
+        const toggleDepartement = () => {
+            if (!roleSelect || !departementField) {
+                return;
+            }
+            const showField = roleSelect.value === 'directeur';
+            departementField.style.display = showField ? 'block' : 'none';
+            const select = departementField.querySelector('select');
+            if (select) {
+                select.required = showField;
+                if (!showField) {
+                    select.value = '';
+                }
+            }
+        };
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleDepartement);
+            toggleDepartement();
+        }
+    })();
+</script>
