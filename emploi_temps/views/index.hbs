@@ -1,0 +1,45 @@
+<h2>Liste des cours</h2>
+{{#if error}}
+  <p style="color:darkred">{{error}}</p>
+{{/if}}
+
+{{#if students}}
+  <div style="margin:12px 0">
+    <form action="/etudiant" method="get" style="display:flex;gap:8px;align-items:center">
+      <label for="quickStudent">Voir l'emploi d'un étudiant :</label>
+      <select id="quickStudent" name="studentId">
+        {{#each students}}
+          <option value="{{id}}">{{nom}}</option>
+        {{/each}}
+      </select>
+      <button class="btn" type="submit">Voir</button>
+    </form>
+  </div>
+{{/if}}
+<table border="1">
+  <tr>
+    <th>Nom</th>
+    <th>Enseignant</th>
+    <th>Salle</th>
+    <th>Jour</th>
+    <th>Début</th>
+    <th>Fin</th>
+    <th>Actions</th>
+  </tr>
+  {{#each cours}}
+  <tr>
+    <td>{{nom_cours}}</td>
+    <td>{{enseignant}}</td>
+    <td>{{salle}}</td>
+    <td>{{jour}}</td>
+    <td>{{heure_debut}}</td>
+    <td>{{heure_fin}}</td>
+    <td>
+      <a class="btn" href="/modifier/{{id}}">Éditer</a>
+      <form style="display:inline" method="POST" action="/supprimer/{{id}}" onsubmit="return confirm('Confirmer la suppression ?')">
+        <button class="btn secondary" type="submit">Supprimer</button>
+      </form>
+    </td>
+  </tr>
+  {{/each}}
+</table>

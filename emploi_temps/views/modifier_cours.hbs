@@ -1,0 +1,35 @@
+<h2>Modifier un cours</h2>
+{{#if error}}
+  <p style="color:darkred">{{error}}</p>
+{{/if}}
+{{#if cours}}
+<form method="POST" action="/modifier/{{cours.id}}">
+  <label>Nom du cours :</label>
+  <input type="text" name="nom_cours" value="{{cours.nom_cours}}" required>
+
+  <label>Enseignant :</label>
+  <input type="text" name="enseignant" value="{{cours.enseignant}}" required>
+
+  <label>Salle :</label>
+  <input type="text" name="salle" value="{{cours.salle}}" required>
+
+  <label>Jour :</label>
+  <input type="text" name="jour" value="{{cours.jour}}" required>
+
+  <div class="form-row">
+    <div>
+      <label>Heure début :</label>
+      <input type="time" name="heure_debut" value="{{cours.heure_debut}}" required>
+    </div>
+    <div>
+      <label>Heure fin :</label>
+      <input type="time" name="heure_fin" value="{{cours.heure_fin}}" required>
+    </div>
+  </div>
+
+  <button class="btn" type="submit">Enregistrer</button>
+  <a class="btn secondary" href="/">Annuler</a>
+</form>
+{{else}}
+  <p>Cours introuvable.</p>
+{{/if}}

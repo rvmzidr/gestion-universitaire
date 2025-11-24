@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
+  <rect width="120" height="120" rx="12" fill="#ffffff"/>
+  <g transform="translate(12,12)">
+    <circle cx="48" cy="24" r="18" fill="#0057b7" />
+    <rect x="10" y="48" width="76" height="18" rx="4" fill="#003a8c" />
+    <text x="0" y="108" font-family="Inter, Arial" font-size="10" fill="#374151">ISET TOUZUR</text>
+  </g>
+</svg>

@@ -63,6 +63,7 @@ const enseignantRoutes = require('./routes/enseignants');
 const etudiantRoutes = require('./routes/etudiants');
 const coursRoutes = require('./routes/cours');
 const emploisRoutes = require('./routes/emplois');
+const apiEmploisRoutes = require('./routes/api_emplois');
 
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
@@ -71,6 +72,7 @@ app.use('/enseignants', enseignantRoutes);
 app.use('/etudiants', etudiantRoutes);
 app.use('/cours', coursRoutes);
 app.use('/emplois', emploisRoutes);
+app.use('/api/emplois', apiEmploisRoutes);
 
 // Page d'accueil (redirection)
 app.get('/', (req, res) => {

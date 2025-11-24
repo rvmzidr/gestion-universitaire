@@ -1,0 +1,66 @@
+<h2>Voir l'emploi du temps d'un enseignant</h2>
+{{#if error}}<p style="color:darkred">{{error}}</p>{{/if}}
+<form id="teacherForm" style="display:flex;gap:10px;align-items:center">
+  <label>Choisir enseignant :</label>
+  <select id="teacherSelect">
+    <option value="">-- Sélectionner --</option>
+    {{#each enseignants}}
+      <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  <label>Salle :</label>
+  <select id="salleSelect">
+    <option value="">-- Toutes --</option>
+    {{#each salles}}
+      <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  <label>Jour :</label>
+  <select id="jourSelect">
+    <option value="">-- Tous --</option>
+    {{#each jours}}
+      <option value="{{this}}">{{this}}</option>
+    {{/each}}
+  </select>
+  <button type="button" id="viewTeacher" class="btn">Voir</button>
+</form>
+
+<div id="calendar"></div>
+
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css' rel='stylesheet' />
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
+
+<script>
+  let calendar;
+  document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'timeGridWeek',
+      headerToolbar: { left:'prev,next today', center:'title', right:'timeGridWeek,timeGridDay,dayGridMonth' },
+      slotMinTime: '07:00:00', slotMaxTime: '20:00:00',
+      events: []
+    });
+    calendar.render();
+
+    document.getElementById('viewTeacher').addEventListener('click', () => {
+      const name = document.getElementById('teacherSelect').value;
+      const salle = document.getElementById('salleSelect').value;
+      const jour = document.getElementById('jourSelect').value;
+      if (!name) return alert('Choisissez un enseignant');
+      let url = '/api/cours?enseignant=' + encodeURIComponent(name);
+      if (salle) url += '&salle=' + encodeURIComponent(salle);
+      if (jour) url += '&jour=' + encodeURIComponent(jour);
+      fetch(url).then(r => r.json()).then(events => {
+        calendar.removeAllEvents();
+        calendar.addEventSource(events);
+      }).catch(err => alert('Erreur: ' + err.message));
+    });
+
+    // auto-select if provided
+    const selected = {{#if selectedName}}'{{selectedName}}'{{else}}null{{/if}};
+    if (selected) {
+      document.getElementById('teacherSelect').value = selected;
+      document.getElementById('viewTeacher').click();
+    }
+  });
+</script>

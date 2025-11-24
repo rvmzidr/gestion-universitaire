@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gestion des emplois du temps</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="brand">
+      <img src="/iset_touzur_logo.svg" alt="ISET Touzour logo" class="logo">
+      <div>
+        <h1>Emploi du Temps</h1>
+        <div style="font-size:13px;color:rgba(255,255,255,0.9)">ISET TOUZUR</div>
+      </div>
+    </div>
+    <nav style="margin-left:auto">
+      <a href="/">Liste des cours</a>
+      <a href="/calendar">Calendrier</a>
+      <a href="/etudiant">Étudiant</a>
+      <a href="/ajouter">Ajouter un cours</a>
+      <a href="/admin">Admin</a>
+    </nav>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      {{{body}}}
+    </div>
+  </div>
+
+  <footer>
+    &copy; ISET TOUZUR - Gestion des emplois du temps
+  </footer>
+</body>
+</html>

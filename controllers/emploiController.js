@@ -1,5 +1,5 @@
 const Etudiant = require('../models/Etudiant');
-const Cours = require('../models/Cours');
+const Emploi = require('../models/Emploi');
 const Groupe = require('../models/Groupe');
 
 const DAY_OPTIONS = [
@@ -71,7 +71,7 @@ class EmploiController {
             }
 
             const groupe = await Groupe.findById(etudiant.id_groupe);
-            const cours = await Cours.findByGroupe(etudiant.id_groupe);
+            const cours = await Emploi.findByGroupe(etudiant.id_groupe);
 
             const schedule = DAY_OPTIONS.map(day => {
                 const sessions = cours

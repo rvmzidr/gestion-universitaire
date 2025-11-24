@@ -1,0 +1,54 @@
+<h2>Admin — Inscrire un étudiant à un cours</h2>
+{{#if error}}<p style="color:darkred">{{error}}</p>{{/if}}
+<form method="POST" action="/admin/inscrire" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+  <div>
+    <label>Étudiant :</label>
+    <select name="studentId">
+      <option value="">-- Choisir --</option>
+      {{#each students}}
+        <option value="{{id}}">{{nom}}</option>
+      {{/each}}
+    </select>
+  </div>
+  <div>
+    <label>Cours :</label>
+    <select name="courseId">
+      <option value="">-- Choisir --</option>
+      {{#each courses}}
+        <option value="{{id}}">{{nom_cours}}</option>
+      {{/each}}
+    </select>
+  </div>
+  <div style="align-self:flex-end">
+    <button class="btn" type="submit">Inscrire</button>
+  </div>
+</form>
+
+{{#if msg}}
+  <p style="color:green">{{msg}}</p>
+{{/if}}
+
+<h3 style="margin-top:18px">Inscriptions existantes</h3>
+{{#if inscriptions}}
+  <table style="width:100%;border-collapse:collapse">
+    <thead><tr><th>Étudiant</th><th>Cours</th><th>Action</th></tr></thead>
+    <tbody>
+      {{#each inscriptions}}
+        <tr>
+          <td>{{student_nom}}</td>
+          <td>{{cours_nom}}</td>
+          <td>
+            <form method="POST" action="/admin/supprimer-inscription" style="display:inline">
+              <input type="hidden" name="inscriptionId" value="{{id}}">
+              <button class="btn secondary" type="submit" onclick="return confirm('Supprimer cette inscription ?')">Supprimer</button>
+            </form>
+          </td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+{{else}}
+  <p>Aucune inscription trouvée.</p>
+{{/if}}
+
+<p style="margin-top:12px">Après inscription, allez sur <a href="/etudiant">vue étudiant</a> pour sélectionner l'étudiant et vérifier le calendrier.</p>
