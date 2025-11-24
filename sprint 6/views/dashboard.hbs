@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard Analytique</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 60%; margin-bottom: 20px;}
+    th, td { border: 1px solid #ddd; padding: 8px; }
+    th { background: #f3f3f3; }
+    .btn { padding: 8px 12px; text-decoration:none; border:1px solid #333; margin-right:10px;}
+  </style>
+</head>
+<body>
+  <h1>Tableau de bord — Analytique</h1>
+
+  <h3>Absences par matière</h3>
+  <table id="absTable">
+    <tr><th>Matière</th><th>Total absences</th></tr>
+  </table>
+
+  <h3>Occupation des salles</h3>
+  <table id="salleTable">
+    <tr><th>Salle</th><th>Nombre de cours</th></tr>
+  </table>
+
+  <a class="btn" href="/api/analytics/export/pdf" target="_blank">Télécharger PDF</a>
+  <a class="btn" href="/api/analytics/export/csv" target="_blank">Télécharger CSV</a>
+
+  <script>
+    async function loadStats(){
+      const absRes = await fetch('/api/analytics/absences');
+      const abs = await absRes.json();
+      const t = document.getElementById('absTable');
+      abs.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.matiere}</td><td>${r.total_absences}</td>`;
+        t.appendChild(tr);
+      });
+
+      const salleRes = await fetch('/api/analytics/salles');
+      const salles = await salleRes.json();
+      const ts = document.getElementById('salleTable');
+      salles.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${r.salle}</td><td>${r.nb_cours}</td>`;
+        ts.appendChild(tr);
+      });
+    }
+    loadStats();
+  </script>
+</body>
+</html>
