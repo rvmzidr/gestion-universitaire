@@ -1,0 +1,316 @@
+<div class="page-header">
+    <h1>📋 Mes absences</h1>
+    <a href="/dashboard" class="btn btn-secondary">← Retour au tableau de bord</a>
+</div>
+
+{{#if success}}
+<div class="alert alert-success">
+    Justificatif envoyé avec succès
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger">
+    Erreur lors de l'envoi du justificatif
+</div>
+{{/if}}
+
+<!-- Statistiques personnelles -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.total}}</div>
+            <div class="stat-label">Total</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-danger">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.absents}}</div>
+            <div class="stat-label">Non justifiées</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-success">
+        <div class="stat-icon">✓</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.justifies}}</div>
+            <div class="stat-label">Justifiées</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.retards}}</div>
+            <div class="stat-label">Retards</div>
+        </div>
+    </div>
+</div>
+
+<!-- Mes absences -->
+<div class="card">
+    <h3>Historique de mes absences</h3>
+    
+    {{#if absences.length}}
+    <div class="absences-list">
+        {{#each absences}}
+        <div class="absence-card {{statut}}">
+            <div class="absence-header">
+                <div class="absence-date">
+                    <strong>{{substring date_absence 0 10}}</strong>
+                    <span class="badge badge-{{#if (eq statut 'absent')}}danger{{else if (eq statut 'justifie')}}success{{else if (eq statut 'retard')}}warning{{else}}info{{/if}}">
+                        {{#if (eq statut 'absent')}}❌ Non justifiée
+                        {{else if (eq statut 'justifie')}}✓ Justifiée
+                        {{else if (eq statut 'retard')}}⏰ Retard
+                        {{else if (eq statut 'present')}}✓ Présent
+                        {{/if}}
+                    </span>
+                </div>
+                <div class="absence-course">
+                    <strong>{{cours_titre}}</strong><br>
+                    <small>{{cours_jour}} • {{substring cours_heure_debut 0 5}} - {{substring cours_heure_fin 0 5}}</small>
+                </div>
+            </div>
+            
+            <div class="absence-details">
+                {{#if enseignant_nom}}
+                <p><strong>Enseignant:</strong> {{enseignant_prenom}} {{enseignant_nom}}</p>
+                {{/if}}
+                
+                {{#if motif}}
+                <p><strong>Motif:</strong> {{motif}}</p>
+                {{/if}}
+                
+                {{#if justificatif}}
+                <p><strong>Justificatif:</strong> 📎 Document fourni</p>
+                {{/if}}
+                
+                {{#if remarque}}
+                <div class="alert alert-info" style="margin-top: 10px;">
+                    <strong>Remarque:</strong> {{remarque}}
+                </div>
+                {{/if}}
+            </div>
+            
+            {{#if (eq statut 'absent')}}
+            <div class="absence-actions">
+                <button class="btn btn-warning btn-sm" onclick="openJustifyModal({{id}}, '{{substring date_absence 0 10}}', '{{cours_titre}}')">
+                    📎 Justifier cette absence
+                </button>
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+    {{else}}
+    <div class="alert alert-success">
+        🎉 Aucune absence enregistrée. Continuez comme ça !
+    </div>
+    {{/if}}
+</div>
+
+<!-- Modal pour justifier une absence -->
+<div id="justifyModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeJustifyModal()">&times;</span>
+        <h3>📎 Justifier une absence</h3>
+        
+        <div id="modalInfo" style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+            <!-- Infos dynamiques -->
+        </div>
+        
+        <form id="justifyForm" enctype="multipart/form-data">
+            <input type="hidden" id="absence_id" name="absence_id">
+            
+            <div class="form-group">
+                <label for="motif">Motif de l'absence *</label>
+                <textarea id="motif" name="motif" class="form-control" rows="4" required 
+                    placeholder="Expliquez la raison de votre absence (maladie, problème familial, etc.)"></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="justificatif">Document justificatif (PDF, JPG, PNG) *</label>
+                <input type="file" id="justificatif" name="justificatif" class="form-control" 
+                    accept=".pdf,.jpg,.jpeg,.png" required>
+                <small>Formats acceptés: PDF, JPG, PNG (max 5MB)</small>
+            </div>
+            
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">📤 Envoyer le justificatif</button>
+                <button type="button" class="btn btn-secondary" onclick="closeJustifyModal()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.absences-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.absence-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 20px;
+    background: white;
+    transition: all 0.3s;
+}
+
+.absence-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.absence-card.absent {
+    border-left: 5px solid #dc3545;
+}
+
+.absence-card.justifie {
+    border-left: 5px solid #28a745;
+}
+
+.absence-card.retard {
+    border-left: 5px solid #ffc107;
+}
+
+.absence-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.absence-date {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.absence-course {
+    text-align: right;
+}
+
+.absence-details {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.absence-details p {
+    margin: 8px 0;
+}
+
+.absence-actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideDown {
+    from { transform: translateY(-50px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #000;
+}
+</style>
+
+<script>
+let currentAbsenceId = null;
+
+function openJustifyModal(id, date, cours) {
+    currentAbsenceId = id;
+    document.getElementById('absence_id').value = id;
+    document.getElementById('modalInfo').innerHTML = `
+        <p><strong>Date:</strong> ${date}</p>
+        <p><strong>Cours:</strong> ${cours}</p>
+    `;
+    document.getElementById('justifyModal').style.display = 'block';
+}
+
+function closeJustifyModal() {
+    document.getElementById('justifyModal').style.display = 'none';
+    document.getElementById('justifyForm').reset();
+}
+
+// Fermer le modal si on clique en dehors
+window.onclick = function(event) {
+    const modal = document.getElementById('justifyModal');
+    if (event.target === modal) {
+        closeJustifyModal();
+    }
+}
+
+// Soumettre le formulaire de justification
+document.getElementById('justifyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData();
+    formData.append('motif', document.getElementById('motif').value);
+    formData.append('justificatif', document.getElementById('justificatif').files[0]);
+    
+    try {
+        const response = await fetch(`/absences/justify/${currentAbsenceId}`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert('✓ Justificatif envoyé avec succès');
+            window.location.reload();
+        } else {
+            alert('❌ Erreur: ' + result.error);
+        }
+    } catch (error) {
+        alert('❌ Erreur lors de l\'envoi');
+        console.error(error);
+    }
+});
+</script>

@@ -31,6 +31,7 @@
                 <th>Email</th>
                 <th>Téléphone</th>
                 <th>Département</th>
+                <th>Cours</th>
                 {{#if (eq user.role 'admin')}}
                 <th>Actions</th>
                 {{/if}}
@@ -44,6 +45,9 @@
                 <td>{{this.email}}</td>
                 <td>{{this.telephone}}</td>
                 <td>{{this.departement_nom}}</td>
+                <td>
+                    <a href="/cours?enseignant={{this.id}}" class="btn btn-sm btn-info">📚 Voir cours</a>
+                </td>
                 {{#if (eq ../user.role 'admin')}}
                 <td class="actions">
                     <a href="/enseignants/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
@@ -56,7 +60,7 @@
             </tr>
             {{else}}
             <tr>
-                <td colspan="{{#if (eq user.role 'admin')}}6{{else}}5{{/if}}" class="text-center">Aucun enseignant trouvé</td>
+                <td colspan="{{#if (eq user.role 'admin')}}7{{else}}6{{/if}}" class="text-center">Aucun enseignant trouvé</td>
             </tr>
             {{/each}}
         </tbody>

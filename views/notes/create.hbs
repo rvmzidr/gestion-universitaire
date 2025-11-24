@@ -1,0 +1,286 @@
+<div class="create-note-page">
+    <div class="page-header">
+        <h1>➕ Ajouter une Note</h1>
+        <p class="page-subtitle">Saisir une nouvelle note pour vos étudiants</p>
+    </div>
+
+    <div class="form-container">
+        <form id="noteForm" class="note-form">
+            <!-- Sélection du cours -->
+            <div class="form-group">
+                <label for="id_cours">Cours *</label>
+                <select id="id_cours" name="id_cours" required>
+                    <option value="">Sélectionnez un cours</option>
+                    {{#each cours}}
+                    <option value="{{id}}">{{titre}} ({{#if groupe_nom}}{{groupe_nom}}{{else}}Tous les groupes{{/if}})</option>
+                    {{/each}}
+                </select>
+            </div>
+
+            <!-- Chargement des étudiants -->
+            <div id="etudiantsSection" style="display: none;">
+                <div class="form-group">
+                    <label>Étudiants du cours</label>
+                    <div id="etudiantsList" class="etudiants-grid"></div>
+                </div>
+            </div>
+
+            <!-- Type d'évaluation -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type_evaluation">Type d'évaluation *</label>
+                    <select id="type_evaluation" name="type_evaluation" required>
+                        <option value="ds">Devoir Surveillé (DS)</option>
+                        <option value="cc">Contrôle Continu (CC)</option>
+                        <option value="tp">Travaux Pratiques (TP)</option>
+                        <option value="examen">Examen</option>
+                        <option value="projet">Projet</option>
+                        <option value="oral">Oral</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date_evaluation">Date *</label>
+                    <input type="date" id="date_evaluation" name="date_evaluation" required>
+                </div>
+            </div>
+
+            <!-- Note et coefficient -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="note">Note (sur 20) *</label>
+                    <input type="number" id="note" name="note" min="0" max="20" step="0.25" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coefficient">Coefficient *</label>
+                    <input type="number" id="coefficient" name="coefficient" min="0.5" max="5" step="0.5" value="1" required>
+                </div>
+            </div>
+
+            <!-- Semestre et année -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="semestre">Semestre *</label>
+                    <select id="semestre" name="semestre" required>
+                        <option value="1">Semestre 1</option>
+                        <option value="2">Semestre 2</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="annee_universitaire">Année universitaire *</label>
+                    <select id="annee_universitaire" name="annee_universitaire" required>
+                        <option value="2025-2026" selected>2025-2026</option>
+                        <option value="2024-2025">2024-2025</option>
+                        <option value="2023-2024">2023-2024</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Remarque -->
+            <div class="form-group">
+                <label for="remarque">Remarque (optionnel)</label>
+                <textarea id="remarque" name="remarque" rows="3" placeholder="Commentaire sur la note..."></textarea>
+            </div>
+
+            <!-- Actions -->
+            <div class="form-actions">
+                <button type="button" onclick="window.history.back()" class="btn btn-secondary">
+                    Annuler
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    💾 Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.create-note-page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+.form-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-2xl);
+}
+
+.note-form .form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.note-form label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.note-form input,
+.note-form select,
+.note-form textarea {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: border-color var(--transition-fast);
+}
+
+.note-form input:focus,
+.note-form select:focus,
+.note-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.etudiants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+    max-height: 400px;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.etudiant-checkbox {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.etudiant-checkbox:hover {
+    background: var(--bg-secondary);
+    border-color: var(--primary-color);
+}
+
+.etudiant-checkbox input {
+    width: auto;
+    margin-right: var(--spacing-sm);
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-md);
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-xl);
+    border-top: 1px solid var(--border-color);
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const coursSelect = document.getElementById('id_cours');
+    const etudiantsSection = document.getElementById('etudiantsSection');
+    const etudiantsList = document.getElementById('etudiantsList');
+    const noteForm = document.getElementById('noteForm');
+
+    // Charger les étudiants quand un cours est sélectionné
+    coursSelect.addEventListener('change', async function() {
+        const coursId = this.value;
+        
+        if (!coursId) {
+            etudiantsSection.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/notes/api/cours/${coursId}/etudiants`);
+            const data = await response.json();
+
+            if (data.success && data.etudiants.length > 0) {
+                etudiantsList.innerHTML = data.etudiants.map(etudiant => `
+                    <label class="etudiant-checkbox">
+                        <input type="radio" name="id_etudiant" value="${etudiant.id}" required>
+                        <span>${etudiant.nom} ${etudiant.prenom}</span>
+                    </label>
+                `).join('');
+                
+                etudiantsSection.style.display = 'block';
+            } else {
+                etudiantsList.innerHTML = '<p>Aucun étudiant trouvé pour ce cours</p>';
+                etudiantsSection.style.display = 'block';
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors du chargement des étudiants');
+        }
+    });
+
+    // Soumettre le formulaire
+    noteForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const idEtudiant = document.querySelector('input[name="id_etudiant"]:checked');
+        
+        if (!idEtudiant) {
+            alert('Veuillez sélectionner un étudiant');
+            return;
+        }
+
+        const formData = {
+            id_etudiant: idEtudiant.value,
+            id_cours: document.getElementById('id_cours').value,
+            type_evaluation: document.getElementById('type_evaluation').value,
+            note: document.getElementById('note').value,
+            coefficient: document.getElementById('coefficient').value,
+            date_evaluation: document.getElementById('date_evaluation').value,
+            semestre: document.getElementById('semestre').value,
+            annee_universitaire: document.getElementById('annee_universitaire').value,
+            remarque: document.getElementById('remarque').value
+        };
+
+        try {
+            const response = await fetch('/notes/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert('Note ajoutée avec succès !');
+                window.location.href = '/notes';
+            } else {
+                alert('Erreur: ' + data.message);
+            }
+        } catch (error) {
+            console.error('Erreur:', error);
+            alert('Erreur lors de l\'ajout de la note');
+        }
+    });
+
+    // Définir la date du jour par défaut
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('date_evaluation').value = today;
+});
+</script>

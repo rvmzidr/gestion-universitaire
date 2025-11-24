@@ -7,6 +7,22 @@
     <div class="alert alert-error">{{error}}</div>
 {{/if}}
 
+{{#if restrictedToDepartment}}
+    <div class="alert alert-info" style="margin-bottom: 20px;">
+        Vous pouvez planifier des cours uniquement pour les enseignants et groupes de votre département.
+    </div>
+    {{#unless hasAssignableTeachers}}
+        <div class="alert alert-warning" style="margin-bottom: 20px;">
+            Aucun enseignant de votre département n'est disponible dans la base. Contactez l'administration.
+        </div>
+    {{/unless}}
+    {{#unless hasAssignableGroups}}
+        <div class="alert alert-warning" style="margin-bottom: 20px;">
+            Aucun groupe de votre département n'est disponible dans la base. Contactez l'administration.
+        </div>
+    {{/unless}}
+{{/if}}
+
 {{#if enseignant}}
     {{#if groupe}}
         <div class="alert alert-info" style="margin-bottom: 20px;">

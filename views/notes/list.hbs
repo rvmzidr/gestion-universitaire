@@ -1,0 +1,326 @@
+<div class="notes-page">
+    <div class="page-header">
+        <h1>📝 Gestion des Notes</h1>
+        {{#if (eq user.role 'enseignant')}}
+        <p class="page-subtitle">Saisie et gestion des notes de vos étudiants</p>
+        {{else if (eq user.role 'admin')}}
+        <p class="page-subtitle">Vue globale des notes (lecture seule)</p>
+        {{else if (eq user.role 'directeur')}}
+        <p class="page-subtitle">Consultation des notes du département</p>
+        {{/if}}
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-bar">
+        {{#if canAdd}}
+        <a href="/notes/create" class="btn btn-primary">
+            <span>➕</span> Ajouter une note
+        </a>
+        {{/if}}
+        
+        <div class="filters">
+            <form method="GET" action="/notes" class="filter-form">
+                <select name="semestre" onchange="this.form.submit()">
+                    <option value="1" {{#if (eq filters.semestre '1')}}selected{{/if}}>Semestre 1</option>
+                    <option value="2" {{#if (eq filters.semestre '2')}}selected{{/if}}>Semestre 2</option>
+                </select>
+                
+                <select name="annee" onchange="this.form.submit()">
+                    <option value="2025-2026" {{#if (eq filters.annee_universitaire '2025-2026')}}selected{{/if}}>2025-2026</option>
+                    <option value="2024-2025" {{#if (eq filters.annee_universitaire '2024-2025')}}selected{{/if}}>2024-2025</option>
+                    <option value="2023-2024" {{#if (eq filters.annee_universitaire '2023-2024')}}selected{{/if}}>2023-2024</option>
+                </select>
+                
+                <select name="type" onchange="this.form.submit()">
+                    <option value="">Tous les types</option>
+                    <option value="ds" {{#if (eq filters.type_evaluation 'ds')}}selected{{/if}}>DS</option>
+                    <option value="cc" {{#if (eq filters.type_evaluation 'cc')}}selected{{/if}}>CC</option>
+                    <option value="tp" {{#if (eq filters.type_evaluation 'tp')}}selected{{/if}}>TP</option>
+                    <option value="examen" {{#if (eq filters.type_evaluation 'examen')}}selected{{/if}}>Examen</option>
+                    <option value="projet" {{#if (eq filters.type_evaluation 'projet')}}selected{{/if}}>Projet</option>
+                    <option value="oral" {{#if (eq filters.type_evaluation 'oral')}}selected{{/if}}>Oral</option>
+                </select>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistiques rapides -->
+    {{#if notes.length}}
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <div class="stat-value">{{notes.length}}</div>
+                <div class="stat-label">Notes saisies</div>
+            </div>
+        </div>
+    </div>
+    {{/if}}
+
+    <!-- Liste des notes -->
+    {{#if notes.length}}
+    <div class="notes-table-container">
+        <table class="notes-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Étudiant</th>
+                    <th>Cours</th>
+                    <th>Type</th>
+                    <th>Note</th>
+                    <th>Coef.</th>
+                    <th>Enseignant</th>
+                    {{#if (isIn user.role 'admin' 'directeur')}}
+                    <th>Département</th>
+                    {{/if}}
+                    {{#if canEdit}}
+                    <th>Actions</th>
+                    {{/if}}
+                </tr>
+            </thead>
+            <tbody>
+                {{#each notes}}
+                <tr>
+                    <td>{{date_evaluation}}</td>
+                    <td>
+                        <div class="student-info">
+                            <strong>{{etudiant_nom}} {{etudiant_prenom}}</strong>
+                            <small>{{etudiant_cin}}</small>
+                        </div>
+                    </td>
+                    <td>
+                        <strong>{{cours_titre}}</strong>
+                        {{#if groupe_nom}}
+                        <br><small>{{groupe_nom}}</small>
+                        {{/if}}
+                    </td>
+                    <td>
+                        <span class="badge badge-{{type_evaluation}}">
+                            {{#if (eq type_evaluation 'ds')}}DS{{/if}}
+                            {{#if (eq type_evaluation 'cc')}}CC{{/if}}
+                            {{#if (eq type_evaluation 'tp')}}TP{{/if}}
+                            {{#if (eq type_evaluation 'examen')}}Examen{{/if}}
+                            {{#if (eq type_evaluation 'projet')}}Projet{{/if}}
+                            {{#if (eq type_evaluation 'oral')}}Oral{{/if}}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="note-value {{#if (math note 10)}}{{#if (math note 20)}}note-excellent{{else}}note-good{{/if}}{{else}}note-weak{{/if}}">
+                            {{note}}/20
+                        </span>
+                    </td>
+                    <td>×{{coefficient}}</td>
+                    <td>{{enseignant_prenom}} {{enseignant_nom}}</td>
+                    {{#if (isIn ../user.role 'admin' 'directeur')}}
+                    <td>{{departement_nom}}</td>
+                    {{/if}}
+                    {{#if ../canEdit}}
+                    <td class="actions-cell">
+                        <a href="/notes/edit/{{id}}" class="btn-icon btn-edit" title="Modifier">
+                            ✏️
+                        </a>
+                        <button onclick="deleteNote({{id}})" class="btn-icon btn-delete" title="Supprimer">
+                            🗑️
+                        </button>
+                    </td>
+                    {{/if}}
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+    {{else}}
+    <div class="empty-state">
+        <div class="empty-icon">📝</div>
+        <h3>Aucune note trouvée</h3>
+        <p>{{#if canAdd}}Commencez par ajouter des notes à vos étudiants.{{else}}Aucune note n'a été saisie pour le moment.{{/if}}</p>
+        {{#if canAdd}}
+        <a href="/notes/create" class="btn btn-primary">Ajouter une note</a>
+        {{/if}}
+    </div>
+    {{/if}}
+</div>
+
+<style>
+.notes-page {
+    padding: var(--spacing-xl);
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.page-header h1 {
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    gap: var(--spacing-lg);
+    flex-wrap: wrap;
+}
+
+.filter-form {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.filter-form select {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: white;
+    cursor: pointer;
+}
+
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.notes-table-container {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow-x: auto;
+}
+
+.notes-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.notes-table th {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: var(--spacing-md);
+    text-align: left;
+    font-weight: 600;
+}
+
+.notes-table td {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.notes-table tbody tr:hover {
+    background: var(--bg-secondary);
+}
+
+.student-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.student-info small {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-ds { background: #dbeafe; color: #1e40af; }
+.badge-cc { background: #fef3c7; color: #92400e; }
+.badge-tp { background: #d1fae5; color: #065f46; }
+.badge-examen { background: #fce7f3; color: #9f1239; }
+.badge-projet { background: #e0e7ff; color: #3730a3; }
+.badge-oral { background: #fed7aa; color: #9a3412; }
+
+.note-value {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.note-excellent { color: #059669; }
+.note-good { color: #0891b2; }
+.note-weak { color: #dc2626; }
+
+.actions-cell {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: var(--spacing-xs);
+    transition: transform var(--transition-fast);
+}
+
+.btn-icon:hover {
+    transform: scale(1.2);
+}
+
+.empty-state {
+    text-align: center;
+    padding: var(--spacing-2xl);
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-lg);
+}
+</style>
+
+<script>
+async function deleteNote(id) {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer cette note ?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/notes/delete/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Note supprimée avec succès');
+            window.location.reload();
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la suppression');
+    }
+}
+</script>

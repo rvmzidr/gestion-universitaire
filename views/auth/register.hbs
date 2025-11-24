@@ -44,7 +44,7 @@
                 </select>
             </div>
 
-            <div class="form-group" id="departement-field" style="display: none;">
+            <div class="form-group" id="departement-field" {{#unless showDepartementField}}style="display: none;"{{/unless}}>
                 <label for="id_departement">Département :</label>
                 <select id="id_departement" name="id_departement">
                     <option value="">Sélectionnez un département</option>
@@ -52,6 +52,40 @@
                     <option value="{{this.id}}" {{#if (eq ../formData.id_departement this.id)}}selected{{/if}}>{{this.nom}}</option>
                     {{/each}}
                 </select>
+            </div>
+
+            <!-- Champ téléphone pour enseignant uniquement -->
+            <div class="form-group" id="telephone-field" style="display: none;">
+                <label for="telephone">Téléphone (optionnel) :</label>
+                <input type="tel" id="telephone" name="telephone" value="{{formData.telephone}}" autocomplete="off">
+            </div>
+
+            <!-- Champs spécifiques pour étudiant -->
+            <div id="etudiant-fields" style="display: none;">
+                <div class="form-group">
+                    <label for="cin">CIN (optionnel) :</label>
+                    <input type="text" id="cin" name="cin" value="{{formData.cin}}">
+                    <small>Sera généré automatiquement si non renseigné</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date_naissance">Date de naissance :</label>
+                    <input type="date" id="date_naissance" name="date_naissance" value="{{formData.date_naissance}}">
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_specialite">Spécialité :</label>
+                    <select id="id_specialite" name="id_specialite">
+                        <option value="">Sélectionnez une spécialité</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="id_groupe">Groupe :</label>
+                    <select id="id_groupe" name="id_groupe">
+                        <option value="">Sélectionnez d'abord une spécialité</option>
+                    </select>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary">S'inscrire</button>
@@ -67,25 +101,100 @@
     (function () {
         const roleSelect = document.getElementById('role');
         const departementField = document.getElementById('departement-field');
+        const departementSelect = document.getElementById('id_departement');
+        const telephoneField = document.getElementById('telephone-field');
+        const etudiantFields = document.getElementById('etudiant-fields');
+        const specialiteSelect = document.getElementById('id_specialite');
+        const groupeSelect = document.getElementById('id_groupe');
 
-        const toggleDepartement = () => {
-            if (!roleSelect || !departementField) {
-                return;
+        // Charger les spécialités par département
+        async function loadSpecialites(departementId) {
+            if (!departementId || !specialiteSelect) return;
+            
+            try {
+                const response = await fetch(`/api/specialites?id_departement=${departementId}`);
+                const specialites = await response.json();
+                
+                specialiteSelect.innerHTML = '<option value="">Sélectionnez une spécialité</option>';
+                specialites.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = s.id;
+                    option.textContent = s.nom;
+                    specialiteSelect.appendChild(option);
+                });
+                
+                groupeSelect.innerHTML = '<option value="">Sélectionnez d\'abord une spécialité</option>';
+            } catch (error) {
+                console.error('Erreur lors du chargement des spécialités:', error);
             }
-            const showField = roleSelect.value === 'directeur';
-            departementField.style.display = showField ? 'block' : 'none';
-            const select = departementField.querySelector('select');
-            if (select) {
-                select.required = showField;
-                if (!showField) {
-                    select.value = '';
+        }
+
+        // Charger les groupes par spécialité
+        async function loadGroupes(specialiteId) {
+            if (!specialiteId || !groupeSelect) return;
+            
+            try {
+                const response = await fetch(`/api/groupes?id_specialite=${specialiteId}`);
+                const groupes = await response.json();
+                
+                groupeSelect.innerHTML = '<option value="">Sélectionnez un groupe</option>';
+                groupes.forEach(g => {
+                    const option = document.createElement('option');
+                    option.value = g.id;
+                    option.textContent = g.nom;
+                    groupeSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erreur lors du chargement des groupes:', error);
+            }
+        }
+
+        const toggleFields = () => {
+            if (!roleSelect) return;
+            
+            const role = roleSelect.value;
+            const rolesWithDepartement = ['etudiant', 'enseignant', 'directeur'];
+            
+            // Département
+            const showDept = rolesWithDepartement.includes(role);
+            if (departementField) {
+                departementField.style.display = showDept ? 'block' : 'none';
+                const select = departementField.querySelector('select');
+                if (select) {
+                    select.required = showDept;
+                    if (!showDept) select.value = '';
                 }
+            }
+            
+            // Téléphone (uniquement pour enseignant)
+            if (telephoneField) {
+                telephoneField.style.display = role === 'enseignant' ? 'block' : 'none';
+            }
+            
+            // Champs étudiant
+            if (etudiantFields) {
+                etudiantFields.style.display = role === 'etudiant' ? 'block' : 'none';
             }
         };
 
         if (roleSelect) {
-            roleSelect.addEventListener('change', toggleDepartement);
-            toggleDepartement();
+            roleSelect.addEventListener('change', toggleFields);
+            toggleFields();
+        }
+
+        // Événements pour charger spécialités et groupes
+        if (departementSelect) {
+            departementSelect.addEventListener('change', (e) => {
+                if (roleSelect.value === 'etudiant') {
+                    loadSpecialites(e.target.value);
+                }
+            });
+        }
+
+        if (specialiteSelect) {
+            specialiteSelect.addEventListener('change', (e) => {
+                loadGroupes(e.target.value);
+            });
         }
     })();
 </script>

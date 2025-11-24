@@ -1,0 +1,85 @@
+<div class="form-container">
+    <div class="page-header">
+        <h1>Modifier l'étudiant</h1>
+        <a href="/etudiants" class="btn btn-secondary">← Retour à la liste</a>
+    </div>
+
+    {{#if error}}
+    <div class="alert alert-error">{{error}}</div>
+    {{/if}}
+
+    <form action="/etudiants/edit/{{etudiant.id}}" method="POST" class="form-horizontal">
+        <div class="form-group">
+            <label for="cin">CIN :</label>
+            <input type="text" id="cin" name="cin" value="{{etudiant.cin}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="nom">Nom :</label>
+            <input type="text" id="nom" name="nom" value="{{etudiant.nom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="prenom">Prénom :</label>
+            <input type="text" id="prenom" name="prenom" value="{{etudiant.prenom}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="email">Email :</label>
+            <input type="email" id="email" name="email" value="{{etudiant.email}}" required>
+        </div>
+
+        <div class="form-group">
+            <label for="date_naissance">Date de naissance :</label>
+            <input type="date" id="date_naissance" name="date_naissance" value="{{etudiant.date_naissance}}">
+        </div>
+
+        <div class="form-group">
+            <label for="id_departement">Département :</label>
+            <select id="id_departement" name="id_departement">
+                <option value="">Sélectionnez un département</option>
+                {{#each departements}}
+                <option value="{{this.id}}" {{#if (eq ../etudiant.id_departement this.id)}}selected{{/if}}>{{this.nom}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_specialite">Spécialité :</label>
+            <select id="id_specialite" name="id_specialite" required>
+                <option value="">Sélectionnez une spécialité</option>
+                {{#each specialites}}
+                <option value="{{this.id}}" data-departement="{{this.id_departement}}" data-code="{{this.code}}" data-nom="{{this.nom}}" {{#if (eq ../etudiant.id_specialite this.id)}}selected{{/if}}>
+                    {{#if this.departement_nom}}{{this.departement_nom}} — {{/if}}{{this.nom}}{{#if this.code}} ({{this.code}}){{/if}}
+                </option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="id_groupe">Groupe :</label>
+            <select id="id_groupe" name="id_groupe" required>
+                <option value="">Sélectionnez un groupe</option>
+                {{#each groupes}}
+                <option value="{{this.id}}" data-specialite="{{this.id_specialite}}" data-code="{{this.code}}" data-nom="{{this.nom}}" {{#if (eq ../etudiant.id_groupe this.id)}}selected{{/if}}>
+                    {{this.nom}}{{#if this.code}} ({{this.code}}){{/if}}
+                </option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Mettre à jour</button>
+            <a href="/etudiants" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    window.__ETUDIANT_FORM_DATA__ = {
+        departementId: '{{etudiant.id_departement}}',
+        specialiteId: '{{etudiant.id_specialite}}',
+        groupeId: '{{etudiant.id_groupe}}'
+    };
+</script>
+<script src="/js/etudiants-form.js" defer></script>

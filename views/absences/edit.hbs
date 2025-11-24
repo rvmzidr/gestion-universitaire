@@ -1,0 +1,52 @@
+<div class="page-header">
+    <h1>✏️ Modifier l'absence</h1>
+    <a href="/absences" class="btn btn-secondary">← Retour</a>
+</div>
+
+<div class="card">
+    <form action="/absences/edit/{{absence.id}}" method="POST" enctype="multipart/form-data">
+        <div class="info-card" style="margin-bottom: 20px;">
+            <h3>Informations</h3>
+            <p><strong>Étudiant:</strong> {{absence.etudiant_prenom}} {{absence.etudiant_nom}} ({{absence.etudiant_cin}})</p>
+            <p><strong>Cours:</strong> {{absence.cours_titre}}</p>
+            <p><strong>Date:</strong> {{substring absence.date_absence 0 10}}</p>
+            <p><strong>Horaire:</strong> {{absence.cours_jour}} {{substring absence.cours_heure_debut 0 5}} - {{substring absence.cours_heure_fin 0 5}}</p>
+        </div>
+
+        <div class="form-group">
+            <label for="statut">Statut *</label>
+            <select id="statut" name="statut" class="form-control" required>
+                <option value="absent" {{#if (eq absence.statut 'absent')}}selected{{/if}}>❌ Absent</option>
+                <option value="present" {{#if (eq absence.statut 'present')}}selected{{/if}}>✓ Présent</option>
+                <option value="retard" {{#if (eq absence.statut 'retard')}}selected{{/if}}>⏰ Retard</option>
+                <option value="justifie" {{#if (eq absence.statut 'justifie')}}selected{{/if}}>✓ Justifié</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="motif">Motif</label>
+            <textarea id="motif" name="motif" class="form-control" rows="4">{{absence.motif}}</textarea>
+        </div>
+
+        {{#if absence.justificatif}}
+        <div class="alert alert-info">
+            📎 Justificatif existant: {{absence.justificatif}}
+        </div>
+        {{/if}}
+
+        <div class="form-group">
+            <label for="justificatif">Nouveau justificatif (optionnel)</label>
+            <input type="file" id="justificatif" name="justificatif" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+
+        <div class="form-group">
+            <label for="remarque">Remarque administrative</label>
+            <textarea id="remarque" name="remarque" class="form-control" rows="3">{{absence.remarque}}</textarea>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Enregistrer les modifications</button>
+            <a href="/absences" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>

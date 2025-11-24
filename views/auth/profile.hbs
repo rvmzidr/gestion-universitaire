@@ -1,42 +1,560 @@
 <div class="page-header">
-    <h1>Mon Profil</h1>
+    <h1>👤 Mon Profil</h1>
     <a href="/dashboard" class="btn btn-secondary">← Retour au tableau de bord</a>
 </div>
 
+{{#if success}}
+<div class="alert alert-success">
+    {{#if (eq success 'profile_updated')}}✓ Profil mis à jour avec succès{{/if}}
+    {{#if (eq success 'password_changed')}}✓ Mot de passe changé avec succès{{/if}}
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger">
+    {{#if (eq error 'missing_fields')}}⚠ Tous les champs sont obligatoires{{/if}}
+    {{#if (eq error 'email_exists')}}⚠ Cet email est déjà utilisé{{/if}}
+    {{#if (eq error 'login_exists')}}⚠ Ce login est déjà utilisé{{/if}}
+    {{#if (eq error 'update_failed')}}⚠ Erreur lors de la mise à jour{{/if}}
+    {{#if (eq error 'password_missing_fields')}}⚠ Tous les champs du mot de passe sont obligatoires{{/if}}
+    {{#if (eq error 'password_mismatch')}}⚠ Les mots de passe ne correspondent pas{{/if}}
+    {{#if (eq error 'password_too_short')}}⚠ Le mot de passe doit contenir au moins 6 caractères{{/if}}
+    {{#if (eq error 'wrong_current_password')}}⚠ Mot de passe actuel incorrect{{/if}}
+    {{#if (eq error 'password_change_failed')}}⚠ Erreur lors du changement de mot de passe{{/if}}
+</div>
+{{/if}}
+
 {{#if user}}
-<div class="card" style="padding: 20px; margin-top: 20px;">
-    <h2 style="margin-bottom: 15px;">Informations personnelles</h2>
-    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px;">
-        <div>
-            <strong>Nom</strong>
-            <p>{{user.nom}}</p>
+<!-- Carte principale du profil -->
+<div class="profile-container">
+    <!-- Header avec avatar -->
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <div class="avatar-circle">
+                {{substring user.prenom 0 1}}{{substring user.nom 0 1}}
+            </div>
         </div>
-        <div>
-            <strong>Prénom</strong>
-            <p>{{user.prenom}}</p>
+        <div class="profile-header-info">
+            <h2>{{user.prenom}} {{user.nom}}</h2>
+            <div class="profile-role-badge">
+                {{#if (eq user.role 'admin')}}
+                    <span class="badge badge-danger">🔑 Administrateur</span>
+                {{else if (eq user.role 'directeur')}}
+                    <span class="badge badge-primary">👔 Directeur</span>
+                {{else if (eq user.role 'enseignant')}}
+                    <span class="badge badge-info">👨‍🏫 Enseignant</span>
+                {{else if (eq user.role 'etudiant')}}
+                    <span class="badge badge-success">🎓 Étudiant</span>
+                {{/if}}
+            </div>
+            {{#if user.actif}}
+                <span class="badge badge-success" style="margin-left: 10px;">✓ Compte actif</span>
+            {{else}}
+                <span class="badge badge-warning">⚠ Compte inactif</span>
+            {{/if}}
         </div>
-        <div>
-            <strong>Email</strong>
-            <p>{{user.email}}</p>
+    </div>
+
+    <!-- Informations détaillées -->
+    <div class="profile-details">
+        <h3>📋 Informations personnelles</h3>
+        
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-icon">👤</div>
+                <div class="info-content">
+                    <label>Nom complet</label>
+                    <p>{{user.prenom}} {{user.nom}}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">📧</div>
+                <div class="info-content">
+                    <label>Adresse email</label>
+                    <p>{{user.email}}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">🔐</div>
+                <div class="info-content">
+                    <label>Identifiant de connexion</label>
+                    <p>{{user.login}}</p>
+                </div>
+            </div>
+
+            {{#if departement}}
+            <div class="info-item">
+                <div class="info-icon">🏢</div>
+                <div class="info-content">
+                    <label>Département</label>
+                    <p>{{departement.nom}} <span style="color: var(--text-secondary);">({{departement.code}})</span></p>
+                </div>
+            </div>
+            {{/if}}
+
+            <div class="info-item">
+                <div class="info-icon">📅</div>
+                <div class="info-content">
+                    <label>Date de création</label>
+                    <p>{{substring user.created_at 0 10}}</p>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-icon">🔄</div>
+                <div class="info-content">
+                    <label>Dernière mise à jour</label>
+                    <p>{{substring user.updated_at 0 10}}</p>
+                </div>
+            </div>
         </div>
-        <div>
-            <strong>Identifiant</strong>
-            <p>{{user.login}}</p>
-        </div>
-        <div>
-            <strong>Rôle</strong>
-            <p>{{user.role}}</p>
-        </div>
-        {{#if user.id_departement}}
-        <div>
-            <strong>Département associé</strong>
-            <p>{{user.id_departement}}</p>
-        </div>
-        {{/if}}
+    </div>
+
+    <!-- Actions -->
+    <div class="profile-actions">
+        <button class="btn btn-primary" onclick="openEditModal()">
+            ✏️ Modifier mes informations
+        </button>
+        <button class="btn btn-secondary" onclick="openPasswordModal()">
+            🔒 Changer mon mot de passe
+        </button>
     </div>
 </div>
+
+<!-- Modal Modifier Profil -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>✏️ Modifier mes informations</h3>
+            <span class="close" onclick="closeEditModal()">&times;</span>
+        </div>
+        <form method="POST" action="/auth/profile/update">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="nom">Nom *</label>
+                    <input type="text" id="nom" name="nom" class="form-control" value="{{user.nom}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prenom">Prénom *</label>
+                    <input type="text" id="prenom" name="prenom" class="form-control" value="{{user.prenom}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" name="email" class="form-control" value="{{user.email}}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="login">Identifiant de connexion *</label>
+                    <input type="text" id="login" name="login" class="form-control" value="{{user.login}}" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Changer Mot de Passe -->
+<div id="passwordModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>🔒 Changer mon mot de passe</h3>
+            <span class="close" onclick="closePasswordModal()">&times;</span>
+        </div>
+        <form method="POST" action="/auth/profile/change-password">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="current_password">Mot de passe actuel *</label>
+                    <input type="password" id="current_password" name="current_password" class="form-control" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new_password">Nouveau mot de passe * (min. 6 caractères)</label>
+                    <input type="password" id="new_password" name="new_password" class="form-control" minlength="6" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirm_password">Confirmer le nouveau mot de passe *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" class="form-control" minlength="6" required>
+                </div>
+                
+                <div class="alert alert-info" style="margin-top: 15px;">
+                    <small>
+                        <strong>ℹ️ Conseils :</strong><br>
+                        • Utilisez au moins 6 caractères<br>
+                        • Mélangez lettres, chiffres et symboles<br>
+                        • Évitez les mots de passe trop simples
+                    </small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePasswordModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">🔐 Changer le mot de passe</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Modal Modifier Profil
+function openEditModal() {
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').style.display = 'none';
+}
+
+// Modal Changer Mot de Passe
+function openPasswordModal() {
+    document.getElementById('passwordModal').style.display = 'flex';
+}
+
+function closePasswordModal() {
+    document.getElementById('passwordModal').style.display = 'none';
+}
+
+// Fermer les modals en cliquant en dehors
+window.onclick = function(event) {
+    const editModal = document.getElementById('editModal');
+    const passwordModal = document.getElementById('passwordModal');
+    
+    if (event.target === editModal) {
+        closeEditModal();
+    }
+    if (event.target === passwordModal) {
+        closePasswordModal();
+    }
+}
+</script>
+
+<style>
+.profile-container {
+    max-width: 900px;
+    margin: 30px auto;
+    background: var(--card-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    padding: 40px 30px;
+    display: flex;
+    align-items: center;
+    gap: 25px;
+    color: white;
+}
+
+.profile-avatar {
+    flex-shrink: 0;
+}
+
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5em;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: 4px solid rgba(255, 255, 255, 0.3);
+}
+
+.profile-header-info h2 {
+    margin: 0 0 10px 0;
+    font-size: 1.8em;
+    font-weight: 600;
+}
+
+.profile-role-badge {
+    display: inline-flex;
+    gap: 10px;
+    margin-top: 5px;
+}
+
+.profile-details {
+    padding: 30px;
+}
+
+.profile-details h3 {
+    margin: 0 0 25px 0;
+    color: var(--text-primary);
+    font-size: 1.3em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.info-item {
+    display: flex;
+    gap: 15px;
+    padding: 20px;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.info-item:hover {
+    transform: translateX(5px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.info-icon {
+    font-size: 1.8em;
+    flex-shrink: 0;
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-color);
+    border-radius: 8px;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-content label {
+    display: block;
+    font-size: 0.85em;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.info-content p {
+    margin: 0;
+    font-size: 1.05em;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.profile-actions {
+    padding: 20px 30px 30px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    border-top: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+}
+
+.profile-actions .btn {
+    flex: 1;
+    min-width: 200px;
+    padding: 12px 20px;
+    font-weight: 500;
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px 25px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    border-radius: 12px 12px 0 0;
+    color: white;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.3em;
+}
+
+.modal-header .close {
+    font-size: 2em;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    line-height: 1;
+    transition: transform 0.2s;
+}
+
+.modal-header .close:hover {
+    transform: scale(1.2);
+}
+
+.modal-body {
+    padding: 25px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 15px 25px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: var(--bg-secondary);
+    border-radius: 0 0 12px 12px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-group .form-control {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1em;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: all 0.3s;
+}
+
+.form-group .form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Couleurs spécifiques pour le modal mot de passe */
+#passwordModal .form-group:nth-child(1) .form-control {
+    border-color: #f59e0b;
+    background: rgba(245, 158, 11, 0.05);
+}
+
+#passwordModal .form-group:nth-child(1) .form-control:focus {
+    border-color: #f59e0b;
+    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+#passwordModal .form-group:nth-child(1) label {
+    color: #f59e0b;
+}
+
+#passwordModal .form-group:nth-child(2) .form-control,
+#passwordModal .form-group:nth-child(3) .form-control {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.05);
+}
+
+#passwordModal .form-group:nth-child(2) .form-control:focus,
+#passwordModal .form-group:nth-child(3) .form-control:focus {
+    border-color: #10b981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+#passwordModal .form-group:nth-child(2) label,
+#passwordModal .form-group:nth-child(3) label {
+    color: #10b981;
+}
+
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 30px 20px;
+    }
+    
+    .avatar-circle {
+        width: 80px;
+        height: 80px;
+        font-size: 2em;
+    }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-actions {
+        flex-direction: column;
+    }
+    
+    .profile-actions .btn {
+        width: 100%;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+    }
+}
+</style>
+
 {{else}}
 <div class="alert alert-warning" style="margin-top: 20px;">
+    <strong>⚠️ Erreur</strong><br>
     Impossible de charger les informations de votre profil pour le moment.
 </div>
 {{/if}}

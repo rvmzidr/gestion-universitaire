@@ -7,8 +7,8 @@
 
 {{#if missingProfile}}
     <div class="info-card">
-        <h3>Profil étudiant incomplet</h3>
-        <p>Nous n'avons pas trouvé de fiche étudiant associée à votre compte. Merci de contacter l'administration pour finaliser votre inscription.</p>
+        <h3>Profil {{#if isTeacher}}enseignant{{else if isDirecteur}}directeur{{else}}étudiant{{/if}} incomplet</h3>
+        <p>{{#if isDirecteur}}Aucun département n'est associé à votre compte. Merci de contacter l'administration.{{else}}Nous n'avons pas trouvé de fiche {{#if isTeacher}}enseignant{{else}}étudiant{{/if}} associée à votre compte. Merci de contacter l'administration.{{/if}}</p>
     </div>
 {{else if missingGroup}}
     <div class="info-card">
@@ -18,13 +18,25 @@
 {{else}}
     <div class="info-card" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
         <div>
-            <h3>{{student.prenom}} {{student.nom}}</h3>
-            <p style="margin-top: 5px; color: var(--text-secondary);">
-                Groupe : <strong>{{groupe.nom}}</strong>
-                {{#if student.specialite_nom}}
-                    • Spécialité : <strong>{{student.specialite_nom}}</strong>
-                {{/if}}
-            </p>
+            {{#if isDirecteur}}
+                <h3>Emploi du temps - {{departementNom}}</h3>
+                <p style="margin-top: 5px; color: var(--text-secondary);">
+                    Vue globale du département
+                </p>
+            {{else if isTeacher}}
+                <h3>{{teacher.prenom}} {{teacher.nom}}</h3>
+                <p style="margin-top: 5px; color: var(--text-secondary);">
+                    Département : <strong>{{teacher.departement_nom}}</strong>
+                </p>
+            {{else}}
+                <h3>{{student.prenom}} {{student.nom}}</h3>
+                <p style="margin-top: 5px; color: var(--text-secondary);">
+                    Groupe : <strong>{{groupe.nom}}</strong>
+                    {{#if student.specialite_nom}}
+                        • Spécialité : <strong>{{student.specialite_nom}}</strong>
+                    {{/if}}
+                </p>
+            {{/if}}
         </div>
         <div style="margin-left: auto; display: flex; gap: 10px;">
             <span class="badge badge-success">Semestre courant</span>
@@ -42,6 +54,33 @@
     {{/unless}}
 
     {{#if hasCours}}
+        <!-- Légende des couleurs -->
+        <div class="info-card" style="margin-bottom: 15px;">
+            <h4 style="margin-bottom: 10px; color: var(--text-primary);">🎨 Légende des types de cours</h4>
+            <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 4px; border: 2px solid #a78bfa;"></span>
+                    <span>Cours Magistral (CM)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 4px; border: 2px solid #34d399;"></span>
+                    <span>Travaux Dirigés (TD)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 4px; border: 2px solid #fbbf24;"></span>
+                    <span>Travaux Pratiques (TP)</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 4px; border: 2px solid #f472b6;"></span>
+                    <span>Atelier</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 4px; border: 2px solid #f87171;"></span>
+                    <span>Examen</span>
+                </div>
+            </div>
+        </div>
+        
         <div class="calendar-wrapper">
             <div class="calendar-time-column">
                 {{#each timeScale}}
@@ -54,12 +93,27 @@
                         <div class="calendar-day-header">{{this.label}}</div>
                         <div class="calendar-day-body" style="height: {{../calendarHeight}}px;">
                             {{#each this.sessions}}
-                                <div class="calendar-event" style="top: {{this.position.top}}px; height: {{this.position.height}}px;">
-                                    <span class="calendar-event-time">{{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</span>
+                                <div class="calendar-event {{#if ../../isDirecteur}}calendar-event-directeur{{/if}}" data-type="{{this.type_cours}}" style="top: {{this.position.top}}px; height: {{this.position.height}}px;">
+                                    <span class="calendar-event-time">⏰ {{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</span>
                                     <strong class="calendar-event-title">{{this.titre}}</strong>
-                                    <span class="calendar-event-meta">{{this.type_label}}</span>
-                                    <span class="calendar-event-detail">👨‍🏫 {{this.enseignant_affichage}}</span>
+                                    <span class="calendar-event-meta">📚 {{this.type_label}}</span>
+                                    {{#if ../../isDirecteur}}
+                                        <span class="calendar-event-detail">👨‍🏫 {{this.enseignant_affichage}}</span>
+                                        <span class="calendar-event-detail">👥 {{this.groupe_affichage}}</span>
+                                    {{else if ../../isTeacher}}
+                                        <span class="calendar-event-detail">👥 {{this.groupe_affichage}}</span>
+                                    {{else}}
+                                        <span class="calendar-event-detail">👨‍🏫 {{this.enseignant_affichage}}</span>
+                                    {{/if}}
                                     <span class="calendar-event-detail">🏫 {{this.salle_affichage}}</span>
+                                    {{#if ../../isDirecteur}}
+                                    <div class="calendar-event-actions">
+                                        <a href="/cours/edit/{{this.id}}" class="btn-action btn-edit" title="Modifier">✏️</a>
+                                        <form action="/cours/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce cours ?');">
+                                            <button type="submit" class="btn-action btn-delete" title="Supprimer">🗑️</button>
+                                        </form>
+                                    </div>
+                                    {{/if}}
                                 </div>
                             {{/each}}
                         </div>
@@ -69,3 +123,50 @@
         </div>
     {{/if}}
 {{/if}}
+
+<style>
+    .calendar-event-directeur {
+        padding-bottom: 35px;
+    }
+
+    .calendar-event-actions {
+        position: absolute;
+        bottom: 5px;
+        left: 8px;
+        right: 8px;
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .btn-action {
+        padding: 4px 10px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-edit {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .btn-edit:hover {
+        background: #ffb300;
+        transform: scale(1.05);
+    }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #c82333;
+        transform: scale(1.05);
+    }
+</style>

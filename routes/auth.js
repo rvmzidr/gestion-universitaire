@@ -12,5 +12,7 @@ router.post('/register', optionalAuth, AuthController.register);
 // Routes protégées
 router.get('/logout', authMiddleware, AuthController.logout);
 router.get('/profile', authMiddleware, AuthController.showProfile);
+router.post('/profile/update', authMiddleware, AuthController.updateProfile);
+router.post('/profile/change-password', authMiddleware, AuthController.changePassword);
 
 module.exports = router;

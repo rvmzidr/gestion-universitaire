@@ -1,0 +1,205 @@
+<div class="page-header">
+    <h1>📊 Statistiques des absences</h1>
+    <a href="/absences" class="btn btn-secondary">← Retour</a>
+</div>
+
+<!-- Statistiques globales -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.total}}</div>
+            <div class="stat-label">Total enregistrements</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-danger">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.parStatut.absent}}</div>
+            <div class="stat-label">Absents non justifiés</div>
+        </div>
+        <div class="stat-badge">
+            {{#if stats.total}}
+                {{#with (math stats.parStatut.absent stats.total)}}
+                    {{percent}}%
+                {{/with}}
+            {{else}}
+                0%
+            {{/if}}
+        </div>
+    </div>
+    
+    <div class="stat-card stat-success">
+        <div class="stat-icon">✓</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.parStatut.justifie}}</div>
+            <div class="stat-label">Absences justifiées</div>
+        </div>
+        <div class="stat-badge">
+            {{#if stats.total}}
+                {{#with (math stats.parStatut.justifie stats.total)}}
+                    {{percent}}%
+                {{/with}}
+            {{else}}
+                0%
+            {{/if}}
+        </div>
+    </div>
+    
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.parStatut.retard}}</div>
+            <div class="stat-label">Retards</div>
+        </div>
+        <div class="stat-badge">
+            {{#if stats.total}}
+                {{#with (math stats.parStatut.retard stats.total)}}
+                    {{percent}}%
+                {{/with}}
+            {{else}}
+                0%
+            {{/if}}
+        </div>
+    </div>
+</div>
+
+<!-- Graphiques -->
+<div class="row" style="margin-top: 30px;">
+    <div class="col-md-6">
+        <div class="card">
+            <h3>Répartition des absences par statut</h3>
+            <canvas id="statutChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <h3>Taux d'absence</h3>
+            <div style="text-align: center; padding: 40px;">
+                <div style="font-size: 3em; font-weight: bold; color: {{#if (eq stats.tauxAbsence 0)}}var(--success-color){{else}}var(--danger-color){{/if}};">
+                    {{stats.tauxAbsence}}%
+                </div>
+                <p style="margin-top: 10px; color: var(--text-secondary);">
+                    Taux d'absence global
+                </p>
+                <div style="margin-top: 20px; font-size: 0.9em;">
+                    <div style="display: flex; justify-content: space-around; margin-top: 15px;">
+                        <div>
+                            <strong style="color: var(--danger-color);">{{stats.totalAbsencesReelles}}</strong>
+                            <br>
+                            <small>Absences</small>
+                        </div>
+                        <div>
+                            <strong style="color: var(--success-color);">{{stats.totalPresences}}</strong>
+                            <br>
+                            <small>Présences</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Détails par étudiant -->
+{{#if absences}}
+<div class="card" style="margin-top: 30px;">
+    <h3>Détails des absences</h3>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Étudiant</th>
+                    <th>Cours</th>
+                    <th>Statut</th>
+                    <th>Motif</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each absences}}
+                <tr>
+                    <td>{{substring date_absence 0 10}}</td>
+                    <td>{{etudiant_prenom}} {{etudiant_nom}}</td>
+                    <td>{{cours_titre}}</td>
+                    <td>
+                        {{#if (eq statut 'absent')}}
+                            <span class="badge badge-danger">❌ Absent</span>
+                        {{else if (eq statut 'justifie')}}
+                            <span class="badge badge-success">✓ Justifié</span>
+                        {{else if (eq statut 'retard')}}
+                            <span class="badge badge-warning">⏰ Retard</span>
+                        {{else if (eq statut 'present')}}
+                            <span class="badge badge-info">✓ Présent</span>
+                        {{/if}}
+                    </td>
+                    <td>{{#if motif}}{{substring motif 0 50}}...{{else}}-{{/if}}</td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+    </div>
+</div>
+{{/if}}
+
+<style>
+.row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.col-md-6 {
+    flex: 1;
+    min-width: 300px;
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Graphique en camembert des statuts
+const ctx = document.getElementById('statutChart');
+new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+        labels: ['Absents', 'Justifiés', 'Retards', 'Présents'],
+        datasets: [{
+            data: [
+                {{stats.parStatut.absent}},
+                {{stats.parStatut.justifie}},
+                {{stats.parStatut.retard}},
+                {{stats.parStatut.present}}
+            ],
+            backgroundColor: [
+                '#dc3545',
+                '#28a745',
+                '#ffc107',
+                '#17a2b8'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const label = context.label || '';
+                        const value = context.parsed || 0;
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                        return `${label}: ${value} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    }
+});
+</script>

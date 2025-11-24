@@ -6,12 +6,41 @@ class Cours {
         const params = [];
 
         if (options.id_departement) {
-            filters.push(`(
-                (e.id_departement IS NOT NULL AND e.id_departement = ?)
-                OR
-                (sp.id_departement IS NOT NULL AND sp.id_departement = ?)
-            )`);
-            params.push(options.id_departement, options.id_departement);
+            const departementId = Number.parseInt(options.id_departement, 10) || null;
+            if (departementId) {
+                filters.push(`(
+                    (e.id_departement IS NOT NULL AND e.id_departement = ?)
+                    OR
+                    (sp.id_departement IS NOT NULL AND sp.id_departement = ?)
+                )`);
+                params.push(departementId, departementId);
+            }
+        }
+
+        if (options.id_enseignant) {
+            const enseignantId = Number.parseInt(options.id_enseignant, 10) || null;
+            if (enseignantId) {
+                filters.push('c.id_enseignant = ?');
+                params.push(enseignantId);
+            }
+        }
+
+        if (options.id_groupe) {
+            const groupeId = Number.parseInt(options.id_groupe, 10) || null;
+            if (groupeId) {
+                filters.push('c.id_groupe = ?');
+                params.push(groupeId);
+            }
+        }
+
+        if (options.type_cours) {
+            filters.push('c.type_cours = ?');
+            params.push(options.type_cours);
+        }
+
+        if (options.jour) {
+            filters.push('c.jour = ?');
+            params.push(options.jour);
         }
 
         const whereClause = filters.length ? `WHERE ${filters.join(' AND ')}` : '';
@@ -20,10 +49,12 @@ class Cours {
             SELECT c.*,
                    e.nom AS enseignant_nom,
                    e.prenom AS enseignant_prenom,
+                   e.id_departement AS enseignant_departement,
                    g.nom AS groupe_nom,
                    s.nom AS salle_nom,
                    s.code AS salle_code,
                    sp.nom AS specialite_nom,
+                   sp.id_departement AS specialite_departement,
                    d.id AS departement_id,
                    d.nom AS departement_nom
             FROM cours c
@@ -36,6 +67,37 @@ class Cours {
             ORDER BY FIELD(c.jour, 'lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'), c.heure_debut
         `, params);
         return rows;
+    }
+
+    static async findByIdWithDetails(id) {
+        if (!id) {
+            return null;
+        }
+
+        const [rows] = await db.query(`
+            SELECT c.*,
+                   e.nom AS enseignant_nom,
+                   e.prenom AS enseignant_prenom,
+                   e.id_departement AS enseignant_departement,
+                   g.nom AS groupe_nom,
+                   g.id AS groupe_id,
+                   s.nom AS salle_nom,
+                   s.code AS salle_code,
+                   sp.nom AS specialite_nom,
+                   sp.id_departement AS specialite_departement,
+                   d.id AS departement_id,
+                   d.nom AS departement_nom
+            FROM cours c
+            LEFT JOIN enseignants e ON c.id_enseignant = e.id
+            LEFT JOIN groupes g ON c.id_groupe = g.id
+            LEFT JOIN specialites sp ON g.id_specialite = sp.id
+            LEFT JOIN departements d ON sp.id_departement = d.id
+            LEFT JOIN salles s ON c.id_salle = s.id
+            WHERE c.id = ?
+            LIMIT 1
+        `, [id]);
+
+        return rows[0] || null;
     }
 
     static async findById(id) {

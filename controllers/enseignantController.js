@@ -1,5 +1,7 @@
 const Enseignant = require('../models/Enseignant');
 const Departement = require('../models/Departement');
+const User = require('../models/User');
+const bcrypt = require('bcryptjs');
 const fs = require('fs');
 const csv = require('csv-parser');
 const path = require('path');
@@ -64,7 +66,71 @@ class EnseignantController {
             });
         }
         try {
-            await Enseignant.create(req.body);
+            const { nom, prenom, email, id_departement } = req.body;
+            
+            // Vérifier si l'email existe déjà dans utilisateurs
+            const existingUser = await User.findByEmail(email);
+            if (existingUser) {
+                const departements = await Departement.findAll();
+                return res.render('enseignants/create', {
+                    layout: 'main',
+                    title: 'Ajouter un enseignant',
+                    error: 'Cet email est déjà utilisé dans les comptes utilisateurs',
+                    departements,
+                    data: req.body
+                });
+            }
+            
+            // Vérifier si l'email existe déjà dans enseignants
+            const existingEnseignant = await Enseignant.findByEmail(email);
+            if (existingEnseignant) {
+                const departements = await Departement.findAll();
+                return res.render('enseignants/create', {
+                    layout: 'main',
+                    title: 'Ajouter un enseignant',
+                    error: 'Cet enseignant existe déjà avec cet email',
+                    departements,
+                    data: req.body
+                });
+            }
+            
+            // Générer un login unique
+            let login = `${prenom.toLowerCase()}.${nom.toLowerCase()}`.replace(/\s/g, '');
+            let loginExists = await User.findByLogin(login);
+            let counter = 1;
+            
+            // Si le login existe, ajouter un numéro
+            while (loginExists) {
+                login = `${prenom.toLowerCase()}.${nom.toLowerCase()}${counter}`.replace(/\s/g, '');
+                loginExists = await User.findByLogin(login);
+                counter++;
+            }
+            
+            const defaultPassword = 'ens123'; // Mot de passe temporaire
+            const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+            
+            // Créer d'abord le compte utilisateur
+            const userId = await User.create({
+                nom,
+                prenom,
+                email,
+                login,
+                mdp_hash: hashedPassword,
+                role: 'enseignant',
+                id_departement: id_departement || null
+            });
+            
+            // Créer l'enseignant avec l'id_utilisateur
+            await Enseignant.create({
+                nom,
+                prenom,
+                email,
+                telephone: req.body.telephone || null,
+                id_departement: id_departement || null,
+                id_utilisateur: userId
+            });
+            
+            console.log(`✅ Compte enseignant créé - Login: ${login} / Mot de passe: ${defaultPassword}`);
             res.redirect('/enseignants?success=create');
         } catch (error) {
             console.error(error);
@@ -72,7 +138,7 @@ class EnseignantController {
             res.render('enseignants/create', {
                 layout: 'main',
                 title: 'Ajouter un enseignant',
-                error: 'Erreur lors de la création',
+                error: `Erreur lors de la création: ${error.message}`,
                 departements,
                 data: req.body
             });
@@ -244,7 +310,6 @@ class EnseignantController {
                             prenom: data.prenom.trim(),
                             email: data.email.trim(),
                             telephone: data.telephone ? data.telephone.trim() : null,
-                            specialite: data.specialite ? data.specialite.trim() : null,
                             id_departement: departementId
                         });
                     })
@@ -304,7 +369,7 @@ class EnseignantController {
                 message: 'Accès réservé aux administrateurs'
             });
         }
-        const csvContent = 'nom,prenom,email,telephone,specialite,departement\n' +
+        const csvContent = 'nom,prenom,email,telephone,departement\n' +
                           'Dupont,Jean,jean.dupont@universite.fr,0123456789,Programmation,Informatique\n' +
                           'Martin,Marie,marie.martin@universite.fr,0987654321,Algèbre,Mathématiques\n';
         

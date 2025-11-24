@@ -2,70 +2,157 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, maximum-scale=5.0">
     <title>{{title}} - Gestion Universitaire</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
     {{#if user}}
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <span class="brand-icon">🎓</span>
-                <span class="brand-text">ISET Tozeur</span>
-            </div>
-            
-            <ul class="nav-menu">
-                <li><a href="/dashboard" class="nav-link">
-                    <span class="link-icon">📊</span>
-                    <span>Tableau de bord</span>
-                </a></li>
-                
-                {{#if (isIn user.role 'admin' 'directeur')}}
-                    <li><a href="/departements" class="nav-link">
-                        <span class="link-icon">🏛️</span>
-                        <span>Départements</span>
-                    </a></li>
-                    <li><a href="/enseignants" class="nav-link">
-                        <span class="link-icon">👨‍🏫</span>
-                        <span>Enseignants</span>
-                    </a></li>
-                    <li><a href="/etudiants" class="nav-link">
-                        <span class="link-icon">👨‍🎓</span>
-                        <span>Étudiants</span>
-                    </a></li>
-                    <li><a href="/cours" class="nav-link">
-                        <span class="link-icon">📚</span>
-                        <span>Cours</span>
-                    </a></li>
-                {{/if}}
-                
-                {{#if (eq user.role 'etudiant')}}
-                    <li><a href="/emplois/mon" class="nav-link">
-                        <span class="link-icon">📅</span>
-                        <span>Mon emploi</span>
-                    </a></li>
-                {{/if}}
-            </ul>
-            
-            <div class="nav-user">
-                <div class="user-info">
-                    <span class="user-avatar">{{user.initiales}}</span>
-                    <span class="user-name">{{user.prenom}} {{user.nom}}</span>
-                </div>
-                <div class="user-dropdown">
-                    <a href="/auth/profile" class="dropdown-link">
-                        <span class="link-icon">👤</span>
-                        <span>Mon profil</span>
-                    </a>
-                    <a href="/auth/logout" class="dropdown-link logout">
-                        <span class="link-icon">🚪</span>
-                        <span>Déconnexion</span>
-                    </a>
-                </div>
-            </div>
+    <!-- Top Bar avec bouton menu -->
+    <div class="top-bar">
+        <button class="sidebar-toggle" id="sidebarToggle">
+            <span class="hamburger-icon">☰</span>
+        </button>
+        <div class="top-bar-brand">
+            <span class="brand-icon">🎓</span>
+            <span class="brand-text">ISET Tozeur</span>
         </div>
-    </nav>
+        <div class="top-bar-user">
+            <span class="user-avatar">{{user.initiales}}</span>
+            <span class="user-name">{{user.prenom}} {{user.nom}}</span>
+        </div>
+    </div>
+
+    <!-- Sidebar glissante -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>📚 Menu</h2>
+            <button class="sidebar-close" id="sidebarClose">✕</button>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="sidebar-link">
+                <span class="sidebar-icon">📊</span>
+                <span>Tableau de bord</span>
+            </a>
+            
+            <a href="/messages" class="sidebar-link">
+                <span class="sidebar-icon">💬</span>
+                <span>Messagerie</span>
+            </a>
+            
+            {{#if (isIn user.role 'admin' 'directeur')}}
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Gestion</div>
+                
+                <a href="/departements" class="sidebar-link">
+                    <span class="sidebar-icon">🏫</span>
+                    <span>Départements</span>
+                </a>
+                
+                <a href="/enseignants" class="sidebar-link">
+                    <span class="sidebar-icon">👨‍🏫</span>
+                    <span>Enseignants</span>
+                </a>
+                
+                <a href="/etudiants" class="sidebar-link">
+                    <span class="sidebar-icon">🎓</span>
+                    <span>Étudiants</span>
+                </a>
+                
+                <a href="/cours" class="sidebar-link">
+                    <span class="sidebar-icon">📚</span>
+                    <span>Cours</span>
+                </a>
+                
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Planning</div>
+                
+                <a href="/emplois/{{#if (eq user.role 'admin')}}admin{{else}}directeur{{/if}}" class="sidebar-link">
+                    <span class="sidebar-icon">📅</span>
+                    <span>Emploi du temps</span>
+                </a>
+                
+                <a href="/absences" class="sidebar-link">
+                    <span class="sidebar-icon">📝</span>
+                    <span>Absences</span>
+                </a>
+                
+                <a href="/notes" class="sidebar-link">
+                    <span class="sidebar-icon">📊</span>
+                    <span>Notes</span>
+                </a>
+                
+                <a href="#" class="sidebar-link">
+                    <span class="sidebar-icon">⚠️</span>
+                    <span>Conflits</span>
+                </a>
+            {{/if}}
+            
+            {{#if (eq user.role 'enseignant')}}
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Mes activités</div>
+                
+                <a href="/cours" class="sidebar-link">
+                    <span class="sidebar-icon">📚</span>
+                    <span>Mes cours</span>
+                </a>
+                
+                <a href="/emplois/mon" class="sidebar-link">
+                    <span class="sidebar-icon">📅</span>
+                    <span>Mon emploi</span>
+                </a>
+                
+                <a href="/absences" class="sidebar-link">
+                    <span class="sidebar-icon">📝</span>
+                    <span>Absences</span>
+                </a>
+                
+                <a href="/notes" class="sidebar-link">
+                    <span class="sidebar-icon">💯</span>
+                    <span>Notes</span>
+                </a>
+            {{/if}}
+            
+            {{#if (eq user.role 'etudiant')}}
+                <div class="sidebar-divider"></div>
+                <div class="sidebar-section-title">Mon espace</div>
+                
+                <a href="/cours" class="sidebar-link">
+                    <span class="sidebar-icon">📘</span>
+                    <span>Mes cours</span>
+                </a>
+                
+                <a href="/emplois/mon" class="sidebar-link">
+                    <span class="sidebar-icon">📅</span>
+                    <span>Mon emploi</span>
+                </a>
+                
+                <a href="/absences" class="sidebar-link">
+                    <span class="sidebar-icon">📝</span>
+                    <span>Mes absences</span>
+                </a>
+                
+                <a href="/notes" class="sidebar-link">
+                    <span class="sidebar-icon">🎯</span>
+                    <span>Mes notes</span>
+                </a>
+            {{/if}}
+            
+            <div class="sidebar-divider"></div>
+            
+            <a href="/auth/profile" class="sidebar-link">
+                <span class="sidebar-icon">👤</span>
+                <span>Mon profil</span>
+            </a>
+            
+            <a href="/auth/logout" class="sidebar-link sidebar-link-danger">
+                <span class="sidebar-icon">🚪</span>
+                <span>Déconnexion</span>
+            </a>
+        </nav>
+    </aside>
     {{/if}}
 
     <main class="container">
@@ -76,6 +163,50 @@
         <p>&copy; 2025 ISET Tozeur - Gestion Universitaire</p>
     </footer>
     
+    <script type="module" src="/js/firebase-init.js"></script>
     <script src="/js/theme.js"></script>
+    <script>
+        // Gestion de la sidebar
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            function openSidebar() {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', openSidebar);
+            }
+            
+            if (sidebarClose) {
+                sidebarClose.addEventListener('click', closeSidebar);
+            }
+            
+            if (overlay) {
+                overlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Marquer le lien actif
+            const currentPath = window.location.pathname;
+            const sidebarLinks = document.querySelectorAll('.sidebar-link');
+            sidebarLinks.forEach(link => {
+                const linkPath = new URL(link.href, window.location.origin).pathname;
+                if (currentPath === linkPath || (currentPath.startsWith(linkPath) && linkPath !== '/')) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

@@ -89,6 +89,24 @@ Application web complète pour la gestion d'une université avec fonctionnalité
 - ✅ Tri et recherche (à venir)
 - ✅ Pagination (à venir)
 
+### 5. 💬 Messagerie & Notifications (Firebase)
+
+- ✅ Backend Node/Express connecté à Firestore via `firebase-admin`
+- ✅ Règles d'envoi basées sur les rôles : admin ⇄ tous, directeur ⇄ enseignants/étudiants du département, enseignant ⇄ étudiants/admin/directeur, étudiant ⇄ enseignant/admin
+- ✅ Comptage des non lus (clé `unreadCount`) et création d'un document dans `notifications`
+- 🔄 Reste à intégrer côté client : composant de chat temps réel, badge de notifications, abonnement FCM
+
+#### API REST disponible
+
+| Méthode | Route | Description |
+|---------|-------|-------------|
+| `GET` | `/messages/threads` | Liste des conversations de l'utilisateur connecté (ordre décroissant sur `updatedAt`) |
+| `GET` | `/messages/thread/:threadId` | Retourne le fil et ses messages (`limit`, `order` optionnels) |
+| `POST` | `/messages/send` | Envoie un message (`receiverId`, `content`) et crée la conversation si besoin |
+| `PATCH` | `/messages/thread/:threadId/read` | Marque un fil comme lu (`messageIds` optionnel) et remet le compteur à zéro |
+
+> ℹ️ Lors du premier appel à `/messages/threads`, Firestore demandera un index composite (`participants` array-contains + `updatedAt` desc). Suivez le lien proposé dans la console Firebase. L'interface utilisateur est accessible via `/messages` dans la barre de navigation.
+
 ## 🔒 Mesures de sécurité
 
 ### Authentification
@@ -173,6 +191,9 @@ DB_PASSWORD=
 DB_NAME=gestion_universitaire
 JWT_SECRET=votre_secret_jwt
 SESSION_SECRET=votre_secret_session
+FIREBASE_PROJECT_ID=gestion-universitaire-28077
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk@example.iam.gserviceaccount.com
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\\nREPLACE_WITH_VOTRE_CLE\\n-----END PRIVATE KEY-----\\n"
 ```
 
 ### Lancement
@@ -186,6 +207,8 @@ npm run dev
 ```
 http://localhost:3000
 ```
+
+> ℹ️ **Firebase** : le front charge automatiquement `/js/firebase-init.js` qui expose `window.firebaseServices`. Configurez les variables d'environnement ci-dessus avec les identifiants du compte de service Firebase pour activer Firestore, Messaging et Analytics côté serveur.
 
 ## 👥 Rôles et permissions
 

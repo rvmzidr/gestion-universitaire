@@ -4,6 +4,7 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const db = require('./config/database');
 require('dotenv').config();
 
 const app = express();
@@ -30,6 +31,17 @@ app.engine('hbs', engine({
         },
         json: (context) => {
             return JSON.stringify(context);
+        },
+        math: (value, total) => {
+            if (!total || total === 0) return { percent: 0 };
+            const percent = Math.round((value / total) * 100);
+            return { percent };
+        },
+        or: function(...args) {
+            // Le dernier argument est l'objet options de Handlebars
+            const options = args.pop();
+            // Retourne true si au moins un argument est truthy
+            return args.some(arg => !!arg);
         }
     }
 }));
@@ -63,6 +75,9 @@ const enseignantRoutes = require('./routes/enseignants');
 const etudiantRoutes = require('./routes/etudiants');
 const coursRoutes = require('./routes/cours');
 const emploisRoutes = require('./routes/emplois');
+const messagesRoutes = require('./routes/messages');
+const absencesRoutes = require('./routes/absences');
+const notesRoutes = require('./routes/notes');
 
 app.use('/auth', authRoutes);
 app.use('/dashboard', dashboardRoutes);
@@ -71,6 +86,38 @@ app.use('/enseignants', enseignantRoutes);
 app.use('/etudiants', etudiantRoutes);
 app.use('/cours', coursRoutes);
 app.use('/emplois', emploisRoutes);
+app.use('/messages', messagesRoutes);
+app.use('/absences', absencesRoutes);
+app.use('/notes', notesRoutes);
+
+// Routes API pour le formulaire d'inscription
+app.get('/api/specialites', async (req, res) => {
+    try {
+        const { id_departement } = req.query;
+        const [specialites] = await db.query(
+            'SELECT id, nom FROM specialites WHERE id_departement = ? ORDER BY nom',
+            [id_departement]
+        );
+        res.json(specialites);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erreur lors du chargement des spécialités' });
+    }
+});
+
+app.get('/api/groupes', async (req, res) => {
+    try {
+        const { id_specialite } = req.query;
+        const [groupes] = await db.query(
+            'SELECT id, nom FROM groupes WHERE id_specialite = ? ORDER BY nom',
+            [id_specialite]
+        );
+        res.json(groupes);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erreur lors du chargement des groupes' });
+    }
+});
 
 // Page d'accueil (redirection)
 app.get('/', (req, res) => {

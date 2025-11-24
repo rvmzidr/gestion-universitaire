@@ -2,6 +2,7 @@ const Cours = require('../models/Cours');
 const Enseignant = require('../models/Enseignant');
 const Groupe = require('../models/Groupe');
 const Salle = require('../models/Salle');
+const Etudiant = require('../models/Etudiant');
 const db = require('../config/database');
 
 const DAY_OPTIONS = [
@@ -24,20 +25,76 @@ const TYPE_OPTIONS = [
 class CoursController {
     static async index(req, res) {
         try {
-            const isDirector = req.user && req.user.role === 'directeur';
-            let missingDepartement = false;
-            let cours = [];
+            const role = req.user?.role;
+            const successQuery = req.query.success || null;
+            const errorQuery = req.query.error || null;
 
-            if (isDirector) {
-                const directorDepartementId = req.user.id_departement || null;
+            // Récupération des filtres
+            const filterDeptId = req.query.id_departement || '';
+            const filterEnseignantId = req.query.id_enseignant || '';
+            const filterGroupeId = req.query.id_groupe || '';
+            const filterType = req.query.type_cours || '';
+            const filterJour = req.query.jour || '';
+
+            let cours = [];
+            let missingDepartement = false;
+            let infoMessage = null;
+            let pageTitle = 'Gestion des cours';
+
+            const isAdmin = role === 'admin';
+            const isDirector = role === 'directeur';
+            const isTeacher = role === 'enseignant';
+            const isStudent = role === 'etudiant';
+            const directorDepartementId = CoursController._getDirectorDepartmentId(req.user);
+
+            // Construction des options de filtrage
+            const filterOptions = {};
+            if (filterDeptId) filterOptions.id_departement = filterDeptId;
+            if (filterEnseignantId) filterOptions.id_enseignant = filterEnseignantId;
+            if (filterGroupeId) filterOptions.id_groupe = filterGroupeId;
+            if (filterType) filterOptions.type_cours = filterType;
+            if (filterJour) filterOptions.jour = filterJour;
+
+            if (isAdmin) {
+                cours = await Cours.findAllWithDetails(filterOptions);
+            } else if (isDirector) {
+                pageTitle = 'Cours du département';
                 if (directorDepartementId) {
-                    cours = await Cours.findAllWithDetails({ id_departement: directorDepartementId });
+                    const directorOptions = { ...filterOptions, id_departement: directorDepartementId };
+                    cours = await Cours.findAllWithDetails(directorOptions);
                 } else {
                     missingDepartement = true;
                 }
-            } else {
-                cours = await Cours.findAllWithDetails();
+            } else if (isTeacher) {
+                pageTitle = 'Mes cours';
+                console.log('[DEBUG enseignant] Email recherché:', req.user.email);
+                const enseignant = await Enseignant.findByEmail(req.user.email);
+                console.log('[DEBUG enseignant] Résultat findByEmail:', enseignant);
+                if (!enseignant) {
+                    infoMessage = 'Votre profil enseignant n\'est pas lié à un enseignant dans la base. Contactez l\'administration.';
+                } else {
+                    console.log('[DEBUG enseignant] Recherche cours pour id_enseignant:', enseignant.id);
+                    const teacherOptions = { ...filterOptions, id_enseignant: enseignant.id };
+                    cours = await Cours.findAllWithDetails(teacherOptions);
+                    console.log('[DEBUG enseignant] Cours trouvés:', cours.length);
+                }
+            } else if (isStudent) {
+                pageTitle = 'Mon emploi du temps';
+                console.log('[DEBUG etudiant] Email recherché:', req.user.email);
+                const etudiant = await Etudiant.findByEmail(req.user.email);
+                console.log('[DEBUG etudiant] Résultat findByEmail:', etudiant);
+                if (!etudiant) {
+                    infoMessage = 'Votre compte n\'est associé à aucun profil étudiant. Contactez l\'administration.';
+                } else if (!etudiant.id_groupe) {
+                    infoMessage = 'Aucun groupe n\'est associé à votre profil pour le moment.';
+                } else {
+                    console.log('[DEBUG etudiant] Recherche cours pour id_groupe:', etudiant.id_groupe);
+                    const studentOptions = { ...filterOptions, id_groupe: etudiant.id_groupe };
+                    cours = await Cours.findAllWithDetails(studentOptions);
+                    console.log('[DEBUG etudiant] Cours trouvés:', cours.length);
+                }
             }
+
             const typeLabels = TYPE_OPTIONS.reduce((acc, option) => {
                 acc[option.value] = option.label;
                 return acc;
@@ -46,22 +103,63 @@ class CoursController {
                 acc[option.value] = option.label;
                 return acc;
             }, {});
-            const coursView = cours.map(item => ({
-                ...item,
-                type_label: typeLabels[item.type_cours] || item.type_cours,
-                jour_label: dayLabels[item.jour] || item.jour,
-                heure_debut_affiche: item.heure_debut ? item.heure_debut.slice(0, 5) : '',
-                heure_fin_affiche: item.heure_fin ? item.heure_fin.slice(0, 5) : '',
-                specialite_label: item.specialite_nom || 'Non définie',
-                departement_label: item.departement_nom || 'Non défini'
-            }));
+
+            const coursView = cours.map(item => {
+                const departementId = item.departement_id || item.specialite_departement || item.enseignant_departement || null;
+                return {
+                    ...item,
+                    type_label: typeLabels[item.type_cours] || item.type_cours,
+                    jour_label: dayLabels[item.jour] || item.jour,
+                    heure_debut_affiche: item.heure_debut ? item.heure_debut.slice(0, 5) : '',
+                    heure_fin_affiche: item.heure_fin ? item.heure_fin.slice(0, 5) : '',
+                    specialite_label: item.specialite_nom || 'Non définie',
+                    departement_label: item.departement_nom || 'Non défini',
+                    canManage: CoursController._userCanManageCourse(req.user, item, departementId)
+                };
+            });
+
+            const canManageCourses = isAdmin || isDirector;
+            const canCreateCourse = isAdmin;
+            const showActionsColumn = canManageCourses;
+
+            // Charger les données pour les filtres
+            const Departement = require('../models/Departement');
+            const departements = isAdmin ? await Departement.findAll() : [];
+            
+            let enseignants = [];
+            let groupes = [];
+            
+            if (isAdmin) {
+                enseignants = await Enseignant.findAll();
+                groupes = await Groupe.findAll();
+            } else if (isDirector && directorDepartementId) {
+                enseignants = await Enseignant.findByDepartement(directorDepartementId);
+                groupes = await Groupe.findByDepartement(directorDepartementId);
+            }
+
             res.render('cours/list', {
                 layout: 'main',
-                title: 'Gestion des cours',
+                title: pageTitle,
                 cours: coursView,
                 dayOptions: DAY_OPTIONS,
                 typeOptions: TYPE_OPTIONS,
-                missingDepartement
+                missingDepartement,
+                infoMessage,
+                success: successQuery,
+                error: errorQuery,
+                canCreateCourse,
+                showActionsColumn,
+                // Filtres
+                departements,
+                enseignants,
+                groupes,
+                selectedDeptId: filterDeptId,
+                selectedEnseignantId: filterEnseignantId,
+                selectedGroupeId: filterGroupeId,
+                selectedType: filterType,
+                selectedJour: filterJour,
+                isAdmin,
+                isDirector
             });
         } catch (error) {
             console.error('Erreur lors du chargement des cours:', error);
@@ -74,19 +172,30 @@ class CoursController {
     }
 
     static async showCreate(req, res) {
-        if (!req.user || req.user.role !== 'admin') {
+        const user = req.user;
+        if (!user || !['admin', 'directeur'].includes(user.role)) {
             return res.status(403).render('error', {
                 layout: 'main',
                 title: 'Accès non autorisé',
-                message: 'Accès réservé aux administrateurs'
+                message: 'Accès réservé aux administrateurs et directeurs'
             });
         }
         try {
-            const formData = await CoursController._getFormDependencies();
+            const directorDepartementId = CoursController._getDirectorDepartmentId(user);
+            if (user.role === 'directeur' && !directorDepartementId) {
+                return res.status(403).render('error', {
+                    layout: 'main',
+                    title: 'Département requis',
+                    message: 'Votre compte directeur n\'est associé à aucun département. Contactez un administrateur.'
+                });
+            }
+
+            const formData = await CoursController._getFormDependencies(user);
             res.render('cours/create', {
                 layout: 'main',
                 title: 'Planifier un cours',
                 ...formData,
+                restrictedToDepartment: user.role === 'directeur',
                 form: {
                     jour: 'lundi',
                     type_cours: 'cm'
@@ -103,26 +212,41 @@ class CoursController {
     }
 
     static async create(req, res) {
-        if (!req.user || req.user.role !== 'admin') {
+        const user = req.user;
+        const isAdmin = user && user.role === 'admin';
+        const isDirector = user && user.role === 'directeur';
+
+        if (!isAdmin && !isDirector) {
             return res.status(403).render('error', {
                 layout: 'main',
                 title: 'Accès non autorisé',
-                message: 'Accès réservé aux administrateurs'
+                message: 'Accès réservé aux administrateurs et directeurs'
             });
         }
+
+        if (isDirector && !CoursController._getDirectorDepartmentId(user)) {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Département requis',
+                message: 'Votre compte directeur n\'est associé à aucun département. Contactez un administrateur.'
+            });
+        }
+
         const payload = CoursController._extractPayload(req.body);
-        const formData = await CoursController._getFormDependencies();
+        const formData = await CoursController._getFormDependencies(user);
 
         const validationErrors = CoursController._validate(payload);
         const departmentCheck = await CoursController._validateDepartmentConsistency(payload);
         const { errors: consistencyErrors, enseignant, groupe } = departmentCheck;
-        const allErrors = [...validationErrors, ...consistencyErrors];
+        const directorErrors = CoursController._validateDirectorCourseAccess(user, departmentCheck);
+        const allErrors = [...validationErrors, ...consistencyErrors, ...directorErrors];
 
         if (allErrors.length) {
             return res.render('cours/create', {
                 layout: 'main',
                 title: 'Planifier un cours',
                 ...formData,
+                restrictedToDepartment: isDirector,
                 form: req.body,
                 error: allErrors.join('\n'),
                 enseignant,
@@ -164,6 +288,7 @@ class CoursController {
                 layout: 'main',
                 title: 'Planifier un cours',
                 ...formData,
+                restrictedToDepartment: isDirector,
                 form: req.body,
                 error: 'Erreur lors de la création du cours. Veuillez réessayer.',
                 enseignant,
@@ -173,15 +298,19 @@ class CoursController {
     }
 
     static async showEdit(req, res) {
-        if (!req.user || req.user.role !== 'admin') {
+        const user = req.user;
+        const isAdmin = user && user.role === 'admin';
+        const isDirector = user && user.role === 'directeur';
+
+        if (!isAdmin && !isDirector) {
             return res.status(403).render('error', {
                 layout: 'main',
                 title: 'Accès non autorisé',
-                message: 'Accès réservé aux administrateurs'
+                message: 'Accès réservé aux administrateurs et directeurs'
             });
         }
         try {
-            const cours = await Cours.findById(req.params.id);
+            const cours = await Cours.findByIdWithDetails(req.params.id);
             if (!cours) {
                 return res.status(404).render('error', {
                     layout: 'main',
@@ -190,11 +319,20 @@ class CoursController {
                 });
             }
 
-            const formData = await CoursController._getFormDependencies();
+            if (!CoursController._userCanManageCourse(user, cours)) {
+                return res.status(403).render('error', {
+                    layout: 'main',
+                    title: 'Accès non autorisé',
+                    message: 'Vous ne pouvez modifier que les cours de votre département.'
+                });
+            }
+
+            const formData = await CoursController._getFormDependencies(user);
             res.render('cours/edit', {
                 layout: 'main',
                 title: 'Modifier un cours',
                 ...formData,
+                restrictedToDepartment: isDirector,
                 form: {
                     ...cours,
                     id_enseignant: cours.id_enseignant ? String(cours.id_enseignant) : '',
@@ -215,27 +353,51 @@ class CoursController {
     }
 
     static async update(req, res) {
-        if (!req.user || req.user.role !== 'admin') {
+        const { id } = req.params;
+        const user = req.user;
+        const isAdmin = user && user.role === 'admin';
+        const isDirector = user && user.role === 'directeur';
+
+        if (!isAdmin && !isDirector) {
             return res.status(403).render('error', {
                 layout: 'main',
                 title: 'Accès non autorisé',
-                message: 'Accès réservé aux administrateurs'
+                message: 'Accès réservé aux administrateurs et directeurs'
             });
         }
-        const { id } = req.params;
+
+        const existingCourse = await Cours.findByIdWithDetails(id);
+        if (!existingCourse) {
+            return res.status(404).render('error', {
+                layout: 'main',
+                title: 'Cours introuvable',
+                message: 'Le cours demandé n\'existe pas.'
+            });
+        }
+
+        if (!CoursController._userCanManageCourse(user, existingCourse)) {
+            return res.status(403).render('error', {
+                layout: 'main',
+                title: 'Accès non autorisé',
+                message: 'Vous ne pouvez modifier que les cours de votre département.'
+            });
+        }
+
         const payload = CoursController._extractPayload(req.body);
-        const formData = await CoursController._getFormDependencies();
+        const formData = await CoursController._getFormDependencies(user);
 
         const validationErrors = CoursController._validate(payload);
         const departmentCheck = await CoursController._validateDepartmentConsistency(payload);
         const { errors: consistencyErrors, enseignant, groupe } = departmentCheck;
-        const allErrors = [...validationErrors, ...consistencyErrors];
+        const directorErrors = CoursController._validateDirectorCourseAccess(user, departmentCheck);
+        const allErrors = [...validationErrors, ...consistencyErrors, ...directorErrors];
 
         if (allErrors.length) {
             return res.render('cours/edit', {
                 layout: 'main',
                 title: 'Modifier un cours',
                 ...formData,
+                restrictedToDepartment: isDirector,
                 form: { ...req.body, id },
                 error: allErrors.join('\n'),
                 enseignant,
@@ -278,6 +440,7 @@ class CoursController {
                 layout: 'main',
                 title: 'Modifier un cours',
                 ...formData,
+                restrictedToDepartment: isDirector,
                 form: { ...req.body, id },
                 error: 'Erreur lors de la mise à jour du cours. Veuillez réessayer.',
                 enseignant,
@@ -287,14 +450,36 @@ class CoursController {
     }
 
     static async delete(req, res) {
-        if (!req.user || req.user.role !== 'admin') {
-            return res.status(403).render('error', {
-                layout: 'main',
-                title: 'Accès non autorisé',
-                message: 'Accès réservé aux administrateurs'
-            });
-        }
         try {
+            const user = req.user;
+            const isAdmin = user && user.role === 'admin';
+            const isDirector = user && user.role === 'directeur';
+
+            if (!isAdmin && !isDirector) {
+                return res.status(403).render('error', {
+                    layout: 'main',
+                    title: 'Accès non autorisé',
+                    message: 'Accès réservé aux administrateurs et directeurs'
+                });
+            }
+
+            const cours = await Cours.findByIdWithDetails(req.params.id);
+            if (!cours) {
+                return res.status(404).render('error', {
+                    layout: 'main',
+                    title: 'Cours introuvable',
+                    message: 'Le cours demandé n\'existe pas.'
+                });
+            }
+
+            if (!CoursController._userCanManageCourse(user, cours)) {
+                return res.status(403).render('error', {
+                    layout: 'main',
+                    title: 'Accès non autorisé',
+                    message: 'Vous ne pouvez supprimer que les cours de votre département.'
+                });
+            }
+
             await Cours.delete(req.params.id);
             res.redirect('/cours?success=delete');
         } catch (error) {
@@ -303,10 +488,21 @@ class CoursController {
         }
     }
 
-    static async _getFormDependencies() {
+    static async _getFormDependencies(user) {
+        const role = user?.role || null;
+        const directorDepartementId = CoursController._getDirectorDepartmentId(user);
+
+        const enseignantsPromise = role === 'directeur' && directorDepartementId
+            ? Enseignant.findByDepartement(directorDepartementId)
+            : Enseignant.findAll();
+
+        const groupesPromise = role === 'directeur' && directorDepartementId
+            ? Groupe.findByDepartement(directorDepartementId)
+            : Groupe.findAll();
+
         const [enseignants, groupes, salles] = await Promise.all([
-            Enseignant.findAll(),
-            Groupe.findAll(),
+            enseignantsPromise,
+            groupesPromise,
             Salle.findAll()
         ]);
 
@@ -315,7 +511,10 @@ class CoursController {
             groupes,
             salles,
             dayOptions: DAY_OPTIONS,
-            typeOptions: TYPE_OPTIONS
+            typeOptions: TYPE_OPTIONS,
+            restrictedToDepartment: role === 'directeur',
+            hasAssignableTeachers: enseignants.length > 0,
+            hasAssignableGroups: groupes.length > 0
         };
     }
 
@@ -433,6 +632,90 @@ class CoursController {
                 salle
             };
         });
+    }
+
+    static _getDirectorDepartmentId(user) {
+        if (!user || user.role !== 'directeur') {
+            return null;
+        }
+
+        const value = Number.parseInt(user.id_departement, 10);
+        return Number.isNaN(value) ? null : value;
+    }
+
+    static _userCanManageCourse(user, course, fallbackDepartementId = null) {
+        if (!user) {
+            return false;
+        }
+
+        if (user.role === 'admin') {
+            return true;
+        }
+
+        if (user.role !== 'directeur') {
+            return false;
+        }
+
+        const directorDepartementId = CoursController._getDirectorDepartmentId(user);
+        if (!directorDepartementId) {
+            return false;
+        }
+
+        const candidateDepartments = [
+            course?.departement_id,
+            course?.specialite_departement,
+            course?.enseignant_departement,
+            fallbackDepartementId
+        ]
+            .map((value) => {
+                if (value === null || typeof value === 'undefined') {
+                    return null;
+                }
+                const parsed = Number.parseInt(value, 10);
+                return Number.isNaN(parsed) ? null : parsed;
+            })
+            .filter((value) => value !== null);
+
+        if (!candidateDepartments.length) {
+            return false;
+        }
+
+        return candidateDepartments.some((departmentId) => departmentId === directorDepartementId);
+    }
+
+    static _validateDirectorCourseAccess(user, departmentCheckResult) {
+        if (!user || user.role !== 'directeur') {
+            return [];
+        }
+
+        const errors = [];
+        const directorDepartementId = CoursController._getDirectorDepartmentId(user);
+
+        if (!directorDepartementId) {
+            errors.push('Votre compte directeur n\'est associé à aucun département.');
+            return errors;
+        }
+
+        if (!departmentCheckResult) {
+            return errors;
+        }
+
+        const enseignantDept = departmentCheckResult.enseignant && departmentCheckResult.enseignant.id_departement
+            ? Number.parseInt(departmentCheckResult.enseignant.id_departement, 10)
+            : null;
+        const groupeDept = departmentCheckResult.groupe && departmentCheckResult.groupe.specialite_departement
+            ? Number.parseInt(departmentCheckResult.groupe.specialite_departement, 10)
+            : null;
+
+        if (departmentCheckResult.enseignant && (!enseignantDept || enseignantDept !== directorDepartementId)) {
+            errors.push('Vous ne pouvez sélectionner que des enseignants de votre département.');
+        }
+
+        if (departmentCheckResult.groupe && (!groupeDept || groupeDept !== directorDepartementId)) {
+            errors.push('Vous ne pouvez sélectionner que des groupes de votre département.');
+        }
+
+        return errors;
     }
 
     static _normalizeTime(value) {

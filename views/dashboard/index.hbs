@@ -181,13 +181,41 @@
             <p>Planifier et gérer les cours</p>
             <a href="/cours" class="btn btn-card">Accéder</a>
         </div>
+
+        <div class="card card-glass card-primary">
+            <div class="card-icon-animated">📅</div>
+            <h3>Emplois du temps</h3>
+            <p>Voir les emplois par département</p>
+            <a href="/emplois/mon" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-danger">
+            <div class="card-icon-animated">❌</div>
+            <h3>Absences</h3>
+            <p>Gérer toutes les absences</p>
+            <a href="/absences" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-info">
+            <div class="card-icon-animated">📊</div>
+            <h3>Notes</h3>
+            <p>Consulter toutes les notes</p>
+            <a href="/notes" class="btn btn-card">Accéder</a>
+        </div>
         {{/if}}
 
         {{#if (eq user.role 'directeur')}}
         <div class="card card-glass card-primary">
             <div class="card-icon-animated">📅</div>
-            <h3>Emplois du temps</h3>
-            <p>Créer et modifier les emplois du temps</p>
+            <h3>Emploi du temps</h3>
+            <p>Voir l'emploi du temps du département</p>
+            <a href="/emplois/mon" class="btn btn-card">Voir</a>
+        </div>
+
+        <div class="card card-glass card-warning">
+            <div class="card-icon-animated">📚</div>
+            <h3>Gérer les cours</h3>
+            <p>Créer et modifier les cours</p>
             <a href="/cours" class="btn btn-card">Gérer</a>
         </div>
 
@@ -225,6 +253,20 @@
             <p>Occupation et disponibilité des salles</p>
             <a href="/cours" class="btn btn-card">Voir disponibilités</a>
         </div>
+
+        <div class="card card-glass card-danger">
+            <div class="card-icon-animated">❌</div>
+            <h3>Absences du département</h3>
+            <p>Consulter et valider les absences</p>
+            <a href="/absences" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-info">
+            <div class="card-icon-animated">💯</div>
+            <h3>Notes du département</h3>
+            <p>Statistiques et consultation</p>
+            <a href="/notes" class="btn btn-card">Accéder</a>
+        </div>
         {{/if}}
 
         {{#if (eq user.role 'enseignant')}}
@@ -232,14 +274,28 @@
             <div class="card-icon-animated">📅</div>
             <h3>Mon emploi du temps</h3>
             <p>Consulter mon planning</p>
-            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
+            <a href="/emplois/mon" class="btn btn-card">Accéder</a>
         </div>
         
         <div class="card card-glass card-success">
             <div class="card-icon-animated">📝</div>
             <h3>Mes cours</h3>
             <p>Gérer mes cours</p>
-            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
+            <a href="/cours" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-danger">
+            <div class="card-icon-animated">❌</div>
+            <h3>Absences</h3>
+            <p>Marquer les absences de mes cours</p>
+            <a href="/absences" class="btn btn-card">Accéder</a>
+        </div>
+
+        <div class="card card-glass card-warning">
+            <div class="card-icon-animated">💯</div>
+            <h3>Notes</h3>
+            <p>Saisir et gérer les notes</p>
+            <a href="/notes" class="btn btn-card">Accéder</a>
         </div>
         {{/if}}
 
@@ -251,18 +307,25 @@
             <a href="/emplois/mon" class="btn btn-card">Accéder</a>
         </div>
         
+        <div class="card card-glass card-success">
+            <div class="card-icon-animated">📚</div>
+            <h3>Mes cours</h3>
+            <p>Voir tous mes cours du groupe</p>
+            <a href="/cours" class="btn btn-card">Accéder</a>
+        </div>
+        
         <div class="card card-glass card-info">
-            <div class="card-icon-animated">📊</div>
+            <div class="card-icon-animated">🎯</div>
             <h3>Mes notes</h3>
-            <p>Consulter mes résultats</p>
-            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
+            <p>Consulter mes résultats et moyennes</p>
+            <a href="/notes" class="btn btn-card">Accéder</a>
         </div>
         
         <div class="card card-glass card-warning">
             <div class="card-icon-animated">❌</div>
             <h3>Mes absences</h3>
-            <p>Consulter mes absences</p>
-            <a href="#" class="btn btn-card btn-disabled">Bientôt disponible</a>
+            <p>Consulter et justifier mes absences</p>
+            <a href="/absences" class="btn btn-card">Accéder</a>
         </div>
         {{/if}}
     </div>

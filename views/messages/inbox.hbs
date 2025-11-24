@@ -1,0 +1,161 @@
+<div class="messages-page">
+    <div class="page-header">
+        <h1>Messagerie interne</h1>
+        <p class="page-subtitle">Échangez avec les membres autorisés selon votre rôle.</p>
+    </div>
+
+    {{#if successMessage}}
+    <div class="alert alert-success">{{successMessage}}</div>
+    {{/if}}
+
+    {{#if errorMessage}}
+    <div class="alert alert-error">{{errorMessage}}</div>
+    {{/if}}
+
+    <div class="messages-grid">
+        <aside class="messages-sidebar">
+            <div class="sidebar-header">
+                <h2>Conversations</h2>
+                <span class="sidebar-count">{{threads.length}} fil{{#unless (eq threads.length 1)}}s{{/unless}}</span>
+            </div>
+
+            {{#if hasThreads}}
+            <ul class="thread-list">
+                {{#each threads}}
+                <li class="thread-item {{#if isActive}}is-active{{/if}}">
+                    <a href="{{url}}" class="thread-link">
+                        <div class="thread-avatar">{{partnerInitials}}</div>
+                        <div class="thread-content">
+                            <div class="thread-top">
+                                <span class="thread-name">{{partnerDisplayName}}</span>
+                                {{#if updatedAtFormatted}}
+                                <span class="thread-date">{{updatedAtFormatted}}</span>
+                                {{/if}}
+                            </div>
+                            <div class="thread-last-message">
+                                {{#if lastMessagePreview}}
+                                    {{lastMessagePreview}}
+                                {{else}}
+                                    <em>Pas encore de messages</em>
+                                {{/if}}
+                            </div>
+                        </div>
+                        {{#if unread}}
+                        <span class="thread-badge">{{unread}}</span>
+                        {{/if}}
+                    </a>
+                </li>
+                {{/each}}
+            </ul>
+            {{else}}
+            <div class="thread-empty">
+                <p>Aucune conversation pour le moment.</p>
+                <p>Utilisez le formulaire "Nouveau message" pour démarrer un échange.</p>
+            </div>
+            {{/if}}
+        </aside>
+
+        <section class="messages-main">
+            {{#if selectedThread}}
+            <header class="messages-header">
+                <div class="thread-avatar thread-avatar-large">{{selectedThread.partnerInitials}}</div>
+                <div>
+                    <h2>{{selectedThread.partnerDisplayName}}</h2>
+                    {{#if selectedThread.partner}}
+                    <p class="messages-meta">Rôle : {{selectedThread.partner.role}}</p>
+                    {{/if}}
+                </div>
+            </header>
+
+            <div class="messages-history" data-message-list>
+                {{#if messages.length}}
+                    {{#each messages}}
+                    <div class="message-bubble {{#if isMine}}from-me{{else}}from-them{{/if}}">
+                        <div class="message-header">
+                            <span class="message-author">{{senderDisplayName}}</span>
+                            {{#if createdAt}}
+                            <span class="message-date">{{createdAt}}</span>
+                            {{/if}}
+                        </div>
+                        <p class="message-body">{{content}}</p>
+                    </div>
+                    {{/each}}
+                {{else}}
+                    <div class="messages-placeholder">
+                        <p>Aucun message dans ce fil pour le moment.</p>
+                    </div>
+                {{/if}}
+            </div>
+
+            <form action="/messages/send" method="POST" class="message-form" data-message-form>
+                <input type="hidden" name="receiverId" value="{{selectedThread.partnerId}}">
+                <div class="form-group">
+                    <label for="message-content">Votre message</label>
+                    <textarea id="message-content" name="content" rows="3" required placeholder="Écrire un message..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Envoyer</button>
+            </form>
+            {{else}}
+            <div class="messages-placeholder">
+                <h2>Sélectionnez une conversation</h2>
+                <p>Choisissez un fil existant ou envoyez un nouveau message pour commencer.</p>
+            </div>
+            {{/if}}
+        </section>
+
+        <aside class="messages-contacts">
+            <div class="contacts-header">
+                <div>
+                    <h2>Nouveau message</h2>
+                    <p>Sélectionnez un destinataire autorisé dans votre département.</p>
+                </div>
+                <span class="sidebar-count">{{contacts.length}} contacts</span>
+            </div>
+            <form action="/messages/send" method="POST" class="contact-form">
+                <div class="form-group">
+                    <label for="contact-select">Destinataire</label>
+                    <select id="contact-select" name="receiverId" required>
+                        <option value="">-- Choisissez un destinataire --</option>
+                        {{#if hasContacts}}
+                            {{#each contactsGrouped}}
+                            <optgroup label="{{label}}">
+                                {{#each contacts}}
+                                <option value="{{id}}">{{displayName}}</option>
+                                {{/each}}
+                            </optgroup>
+                            {{/each}}
+                        {{else}}
+                            <option value="" disabled>Aucun destinataire disponible</option>
+                        {{/if}}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-message-content">Message</label>
+                    <textarea id="new-message-content" name="content" rows="4" placeholder="Écrire votre message..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-secondary">Envoyer</button>
+            </form>
+
+            {{#if hasContacts}}
+            <div class="contacts-groups">
+                {{#each contactsGrouped}}
+                <div class="contacts-group">
+                    <h3>{{label}}</h3>
+                    <ul>
+                        {{#each contacts}}
+                        <li>{{displayName}}</li>
+                        {{/each}}
+                    </ul>
+                </div>
+                {{/each}}
+            </div>
+            {{else}}
+            <div class="contacts-empty">
+                <p>Aucun contact disponible dans votre département.</p>
+            </div>
+            {{/if}}
+        </aside>
+    </div>
+</div>
+
+<script type="module" src="/js/messages-ui.js"></script>

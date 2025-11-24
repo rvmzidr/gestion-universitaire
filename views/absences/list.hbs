@@ -1,0 +1,234 @@
+<div class="page-header">
+    <h1>📋 Gestion des absences</h1>
+    <div style="display: flex; gap: 10px;">
+        {{#if canAdd}}
+        <a href="/absences/create" class="btn btn-primary">+ Enregistrer des absences</a>
+        {{/if}}
+        <a href="/absences/statistics" class="btn btn-info">📊 Statistiques</a>
+    </div>
+</div>
+
+{{#if success}}
+<div class="alert alert-success">
+    {{#if (eq success 'updated')}}Absence modifiée avec succès{{/if}}
+    {{#if (eq success 'deleted')}}Absence supprimée avec succès{{/if}}
+    {{#if (eq success 'validated')}}Justification traitée{{/if}}
+</div>
+{{/if}}
+
+{{#if error}}
+<div class="alert alert-danger">
+    {{#if (eq error 'access_denied')}}Accès refusé{{/if}}
+    {{#if (eq error 'update_failed')}}Erreur lors de la modification{{/if}}
+    {{#if (eq error 'delete_failed')}}Erreur lors de la suppression{{/if}}
+</div>
+{{/if}}
+
+<!-- Statistiques rapides -->
+<div class="stats-grid" style="margin-bottom: 30px;">
+    <div class="stat-card stat-primary">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.total}}</div>
+            <div class="stat-label">Total</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-danger">
+        <div class="stat-icon">❌</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.absents}}</div>
+            <div class="stat-label">Absents</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-success">
+        <div class="stat-icon">✓</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.justifies}}</div>
+            <div class="stat-label">Justifiés</div>
+        </div>
+    </div>
+    
+    <div class="stat-card stat-warning">
+        <div class="stat-icon">⏰</div>
+        <div class="stat-content">
+            <div class="stat-value">{{stats.retards}}</div>
+            <div class="stat-label">Retards</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="card" style="margin-bottom: 20px;">
+    <form method="GET" action="/absences" id="filterAbsencesForm" style="display: flex; gap: 15px; flex-wrap: wrap; align-items: end;">
+        {{#if isAdmin}}
+        <div style="flex: 1; min-width: 200px;">
+            <label>Département</label>
+            <select name="departement" id="departementFilter" class="form-control" onchange="onDepartementFilterChange()">
+                <option value="">Tous les départements</option>
+                {{#each departements}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../selectedDeptId)}}selected{{/if}}>
+                        {{this.nom}}
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+        
+        {{#if selectedDeptId}}
+        <div style="flex: 1; min-width: 200px;">
+            <label>Groupe</label>
+            <select name="groupe" id="groupeFilter" class="form-control" onchange="this.form.submit()">
+                <option value="">Tous les groupes</option>
+                {{#each groupes}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../selectedGroupeId)}}selected{{/if}}>
+                        {{this.nom}}
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+        {{/if}}
+        {{/if}}
+        
+        <div style="flex: 1; min-width: 200px;">
+            <label>Statut</label>
+            <select name="statut" class="form-control">
+                <option value="">Tous</option>
+                <option value="absent" {{#if (eq filters.statut 'absent')}}selected{{/if}}>Absent</option>
+                <option value="justifie" {{#if (eq filters.statut 'justifie')}}selected{{/if}}>Justifié</option>
+                <option value="retard" {{#if (eq filters.statut 'retard')}}selected{{/if}}>Retard</option>
+                <option value="present" {{#if (eq filters.statut 'present')}}selected{{/if}}>Présent</option>
+            </select>
+        </div>
+        
+        <div style="flex: 1; min-width: 200px;">
+            <label>Date début</label>
+            <input type="date" name="date_debut" class="form-control" value="{{filters.date_debut}}">
+        </div>
+        
+        <div style="flex: 1; min-width: 200px;">
+            <label>Date fin</label>
+            <input type="date" name="date_fin" class="form-control" value="{{filters.date_fin}}">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+        <a href="/absences" class="btn btn-secondary">↻ Réinitialiser</a>
+    </form>
+</div>
+
+{{#if isAdmin}}
+<script>
+function onDepartementFilterChange() {
+    const form = document.getElementById('filterAbsencesForm');
+    const groupeSelect = document.getElementById('groupeFilter');
+    
+    // Réinitialiser le groupe quand on change de département
+    if (groupeSelect) {
+        groupeSelect.value = '';
+    }
+    
+    // Conserver les autres filtres
+    form.submit();
+}
+</script>
+{{/if}}
+
+<!-- Liste des absences -->
+<div class="table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Étudiant</th>
+                <th>Cours</th>
+                <th>Groupe</th>
+                <th>Statut</th>
+                <th>Enseignant</th>
+                {{#if canValidate}}
+                <th>Actions</th>
+                {{/if}}
+            </tr>
+        </thead>
+        <tbody>
+            {{#each absences}}
+            <tr>
+                <td>{{substring date_absence 0 10}}</td>
+                <td>
+                    <strong>{{etudiant_prenom}} {{etudiant_nom}}</strong><br>
+                    <small>{{etudiant_cin}}</small>
+                </td>
+                <td>
+                    <strong>{{cours_titre}}</strong><br>
+                    <small>{{cours_jour}} {{substring cours_heure_debut 0 5}} - {{substring cours_heure_fin 0 5}}</small>
+                </td>
+                <td>{{groupe_nom}}</td>
+                <td>
+                    {{#if (eq statut 'absent')}}
+                        <span class="badge badge-danger">❌ Absent</span>
+                    {{else if (eq statut 'justifie')}}
+                        <span class="badge badge-success">✓ Justifié</span>
+                    {{else if (eq statut 'retard')}}
+                        <span class="badge badge-warning">⏰ Retard</span>
+                    {{else if (eq statut 'present')}}
+                        <span class="badge badge-info">✓ Présent</span>
+                    {{/if}}
+                    {{#if motif}}
+                        <br><small title="{{motif}}">📝 Motif fourni</small>
+                    {{/if}}
+                    {{#if justificatif}}
+                        <br><small>📎 Justificatif</small>
+                    {{/if}}
+                </td>
+                <td>{{enseignant_prenom}} {{enseignant_nom}}</td>
+                {{#if ../canValidate}}
+                <td class="actions">
+                    {{#if ../canEdit}}
+                        <a href="/absences/edit/{{id}}" class="btn btn-sm btn-edit">Modifier</a>
+                    {{/if}}
+                    {{#if (eq statut 'justifie')}}
+                        <button class="btn btn-sm btn-success" onclick="validateAbsence({{id}}, 'justifie', 'Validé')">✓ Valider</button>
+                        <button class="btn btn-sm btn-danger" onclick="validateAbsence({{id}}, 'absent', 'Refusé')">✗ Refuser</button>
+                    {{/if}}
+                    {{#if ../canEdit}}
+                        <form action="/absences/delete/{{id}}" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer cette absence ?');">
+                            <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                        </form>
+                    {{/if}}
+                </td>
+                {{/if}}
+            </tr>
+            {{else}}
+            <tr>
+                <td colspan="7" class="text-center">Aucune absence enregistrée</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</div>
+
+<script>
+async function validateAbsence(id, statut, remarque) {
+    if (!confirm(`Êtes-vous sûr de vouloir marquer cette absence comme "${remarque}" ?`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/absences/validate/${id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ statut, remarque })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Erreur: ' + data.error);
+        }
+    } catch (error) {
+        alert('Erreur lors de la validation');
+    }
+}
+</script>

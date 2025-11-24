@@ -1,6 +1,6 @@
 <div class="page-header">
-    <h1>Gestion des cours</h1>
-    {{#if (eq user.role 'admin')}}
+    <h1>{{title}}</h1>
+    {{#if canCreateCourse}}
     <div style="display: flex; gap: 10px;">
         <a href="/cours/create" class="btn btn-primary">+ Planifier un cours</a>
     </div>
@@ -19,6 +19,10 @@
     <div class="alert alert-error">Une erreur est survenue. Veuillez réessayer.</div>
 {{/if}}
 
+{{#if infoMessage}}
+    <div class="alert alert-info">{{infoMessage}}</div>
+{{/if}}
+
 <div class="info-card" style="margin-bottom: var(--spacing-xl);">
     <h3>📚 Vue d'ensemble</h3>
     <p>Consultez et gérez les cours programmés. Les conflits d'horaires sont empêchés automatiquement lors de la création et de la modification.</p>
@@ -28,6 +32,136 @@
 <div class="alert alert-warning">
     Aucun département n'est associé à votre compte directeur. Contactez un administrateur pour accéder aux cours de votre département.
 </div>
+{{/if}}
+
+{{#if (or isAdmin isDirector)}}
+<div class="filter-card" style="margin-bottom: var(--spacing-xl);">
+    <h3>🔍 Filtrer les cours</h3>
+    <form method="GET" action="/cours" id="filterCoursForm">
+        <div class="filter-grid">
+            {{#if isAdmin}}
+            <div class="form-group">
+                <label for="id_departement">Département</label>
+                <select id="id_departement" name="id_departement" class="form-control">
+                    <option value="">Tous les départements</option>
+                    {{#each departements}}
+                        <option value="{{this.id}}" {{#if (eq this.id ../selectedDeptId)}}selected{{/if}}>
+                            {{this.nom}} ({{this.code}})
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+            {{/if}}
+            
+            <div class="form-group">
+                <label for="id_enseignant">Enseignant</label>
+                <select id="id_enseignant" name="id_enseignant" class="form-control">
+                    <option value="">Tous les enseignants</option>
+                    {{#each enseignants}}
+                        <option value="{{this.id}}" data-departement="{{this.id_departement}}" {{#if (eq this.id ../selectedEnseignantId)}}selected{{/if}}>
+                            {{this.prenom}} {{this.nom}}
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="id_groupe">Groupe</label>
+                <select id="id_groupe" name="id_groupe" class="form-control">
+                    <option value="">Tous les groupes</option>
+                    {{#each groupes}}
+                        <option value="{{this.id}}" data-departement="{{this.id_departement}}" {{#if (eq this.id ../selectedGroupeId)}}selected{{/if}}>
+                            {{this.nom}}
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="type_cours">Type de cours</label>
+                <select id="type_cours" name="type_cours" class="form-control">
+                    <option value="">Tous les types</option>
+                    {{#each typeOptions}}
+                        <option value="{{this.value}}" {{#if (eq this.value ../selectedType)}}selected{{/if}}>
+                            {{this.label}}
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="jour">Jour</label>
+                <select id="jour" name="jour" class="form-control">
+                    <option value="">Tous les jours</option>
+                    {{#each dayOptions}}
+                        <option value="{{this.value}}" {{#if (eq this.value ../selectedJour)}}selected{{/if}}>
+                            {{this.label}}
+                        </option>
+                    {{/each}}
+                </select>
+            </div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button type="submit" class="btn btn-primary">🔍 Filtrer</button>
+            <a href="/cours" class="btn btn-secondary">🔄 Réinitialiser</a>
+        </div>
+    </form>
+</div>
+
+<script>
+{{#if isAdmin}}
+// Filtrage dynamique des enseignants et groupes par département
+document.getElementById('id_departement').addEventListener('change', function() {
+    const selectedDeptId = this.value;
+    const enseignantSelect = document.getElementById('id_enseignant');
+    const groupeSelect = document.getElementById('id_groupe');
+    
+    // Filtrer les enseignants
+    const enseignantOptions = enseignantSelect.querySelectorAll('option');
+    enseignantOptions.forEach(option => {
+        if (option.value === '') {
+            option.style.display = '';
+            return;
+        }
+        
+        const optionDept = option.getAttribute('data-departement');
+        if (!selectedDeptId || optionDept === selectedDeptId) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+            if (option.selected) {
+                enseignantSelect.value = '';
+            }
+        }
+    });
+    
+    // Filtrer les groupes
+    const groupeOptions = groupeSelect.querySelectorAll('option');
+    groupeOptions.forEach(option => {
+        if (option.value === '') {
+            option.style.display = '';
+            return;
+        }
+        
+        const optionDept = option.getAttribute('data-departement');
+        if (!selectedDeptId || optionDept === selectedDeptId) {
+            option.style.display = '';
+        } else {
+            option.style.display = 'none';
+            if (option.selected) {
+                groupeSelect.value = '';
+            }
+        }
+    });
+});
+
+// Appliquer le filtre au chargement si un département est déjà sélectionné
+if (document.getElementById('id_departement').value) {
+    document.getElementById('id_departement').dispatchEvent(new Event('change'));
+}
+{{/if}}
+</script>
 {{/if}}
 
 <div class="table-container">
@@ -43,7 +177,7 @@
                 <th>Salle</th>
                 <th>Jour</th>
                 <th>Horaire</th>
-                {{#if (eq user.role 'admin')}}
+                {{#if showActionsColumn}}
                 <th>Actions</th>
                 {{/if}}
             </tr>
@@ -71,18 +205,22 @@
                     <td>{{#if this.salle_nom}}{{this.salle_nom}}{{else if this.salle_code}}{{this.salle_code}}{{else}}<span style="color: var(--text-muted);">À affecter</span>{{/if}}</td>
                     <td>{{this.jour_label}}</td>
                     <td>{{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</td>
-                    {{#if (eq ../user.role 'admin')}}
+                    {{#if ../showActionsColumn}}
                     <td class="actions">
-                        <a href="/cours/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
-                        <form action="/cours/delete/{{this.id}}" method="POST" style="display: inline;" onsubmit="return confirm('Confirmez-vous la suppression de ce cours ?');">
-                            <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
-                        </form>
+                        {{#if this.canManage}}
+                            <a href="/cours/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
+                            <form action="/cours/delete/{{this.id}}" method="POST" style="display: inline;" onsubmit="return confirm('Confirmez-vous la suppression de ce cours ?');">
+                                <button type="submit" class="btn btn-sm btn-delete">Supprimer</button>
+                            </form>
+                        {{else}}
+                            <span style="color: var(--text-muted);">Non autorisé</span>
+                        {{/if}}
                     </td>
                     {{/if}}
                 </tr>
             {{else}}
                 <tr>
-                    <td colspan="{{#if (eq user.role 'admin')}}10{{else}}9{{/if}}" class="text-center">Aucun cours planifié pour le moment.</td>
+                    <td colspan="{{#if showActionsColumn}}10{{else}}9{{/if}}" class="text-center">Aucun cours planifié pour le moment.</td>
                 </tr>
             {{/each}}
         </tbody>

@@ -22,7 +22,7 @@
 </div>
 {{/if}}
 
-<div class="table-container">
+<div class="table-container compact-table">
     <table class="data-table">
         <thead>
             <tr>
@@ -32,6 +32,7 @@
                 <th>Email</th>
                 <th>Groupe</th>
                 <th>Spécialité</th>
+                <th>Emploi du temps</th>
                 {{#if (eq user.role 'admin')}}
                 <th>Actions</th>
                 {{/if}}
@@ -46,6 +47,9 @@
                 <td>{{this.email}}</td>
                 <td>{{this.groupe_nom}}</td>
                 <td>{{this.specialite_nom}}</td>
+                <td>
+                    <a href="/emplois/etudiant/{{this.id}}" class="btn btn-sm btn-success">📅 Voir emploi</a>
+                </td>
                 {{#if (eq ../user.role 'admin')}}
                 <td class="actions">
                     <a href="/etudiants/edit/{{this.id}}" class="btn btn-sm btn-edit">Modifier</a>
@@ -58,7 +62,7 @@
             </tr>
             {{else}}
             <tr>
-                <td colspan="{{#if (eq user.role 'admin')}}7{{else}}6{{/if}}" class="text-center">Aucun étudiant trouvé</td>
+                <td colspan="{{#if (eq user.role 'admin')}}8{{else}}7{{/if}}" class="text-center">Aucun étudiant trouvé</td>
             </tr>
             {{/each}}
         </tbody>

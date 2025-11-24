@@ -1,0 +1,153 @@
+<div class="edit-note-page">
+    <div class="page-header">
+        <h1>✏️ Modifier la Note</h1>
+        <p class="page-subtitle">Modification de la note de {{note.etudiant_prenom}} {{note.etudiant_nom}}</p>
+    </div>
+
+    <div class="form-container">
+        <form id="editForm" class="note-form">
+            <!-- Informations non modifiables -->
+            <div class="info-section">
+                <h3>📋 Informations</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Étudiant:</strong>
+                        <span>{{note.etudiant_nom}} {{note.etudiant_prenom}}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Cours:</strong>
+                        <span>{{note.cours_titre}}</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Semestre:</strong>
+                        <span>Semestre {{note.semestre}} - {{note.annee_universitaire}}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Champs modifiables -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="type_evaluation">Type d'évaluation *</label>
+                    <select id="type_evaluation" name="type_evaluation" required>
+                        <option value="ds" {{#if (eq note.type_evaluation 'ds')}}selected{{/if}}>DS</option>
+                        <option value="cc" {{#if (eq note.type_evaluation 'cc')}}selected{{/if}}>CC</option>
+                        <option value="tp" {{#if (eq note.type_evaluation 'tp')}}selected{{/if}}>TP</option>
+                        <option value="examen" {{#if (eq note.type_evaluation 'examen')}}selected{{/if}}>Examen</option>
+                        <option value="projet" {{#if (eq note.type_evaluation 'projet')}}selected{{/if}}>Projet</option>
+                        <option value="oral" {{#if (eq note.type_evaluation 'oral')}}selected{{/if}}>Oral</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="date_evaluation">Date *</label>
+                    <input type="date" id="date_evaluation" name="date_evaluation" value="{{note.date_evaluation}}" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="note">Note (sur 20) *</label>
+                    <input type="number" id="note" name="note" min="0" max="20" step="0.25" value="{{note.note}}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="coefficient">Coefficient *</label>
+                    <input type="number" id="coefficient" name="coefficient" min="0.5" max="5" step="0.5" value="{{note.coefficient}}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="remarque">Remarque</label>
+                <textarea id="remarque" name="remarque" rows="3">{{note.remarque}}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="window.history.back()" class="btn btn-secondary">
+                    Annuler
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    💾 Enregistrer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.edit-note-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+.info-section {
+    background: var(--bg-secondary);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.info-section h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-item strong {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.info-item span {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+</style>
+
+<script>
+document.getElementById('editForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const formData = {
+        type_evaluation: document.getElementById('type_evaluation').value,
+        note: document.getElementById('note').value,
+        coefficient: document.getElementById('coefficient').value,
+        date_evaluation: document.getElementById('date_evaluation').value,
+        remarque: document.getElementById('remarque').value
+    };
+
+    try {
+        const response = await fetch('/notes/edit/{{note.id}}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Note modifiée avec succès !');
+            window.location.href = '/notes';
+        } else {
+            alert('Erreur: ' + data.message);
+        }
+    } catch (error) {
+        console.error('Erreur:', error);
+        alert('Erreur lors de la modification');
+    }
+});
+</script>

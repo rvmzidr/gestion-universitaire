@@ -1,0 +1,203 @@
+<div class="page-header">
+    <h1>Emploi du temps - Administration</h1>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <span class="badge badge-primary">Année universitaire 2025 - 2026</span>
+        <a href="/cours/create" class="btn btn-success">+ Ajouter un cours</a>
+    </div>
+</div>
+
+<!-- Sélecteurs de département et groupe -->
+<div class="info-card" style="margin-bottom: 20px;">
+    <form method="GET" action="/emplois/admin" id="filterForm" style="display: flex; gap: 15px; align-items: end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px;">
+            <label for="departement" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <span style="color: #e74c3c;">*</span> Département :
+            </label>
+            <select name="departement" id="departement" class="form-control" onchange="onDepartementChange()" required>
+                <option value="">-- Choisir un département --</option>
+                {{#each departements}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../selectedDeptId)}}selected{{/if}}>
+                        {{this.nom}}
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+
+        {{#if selectedDeptId}}
+        <div style="flex: 1; min-width: 250px;">
+            <label for="groupe" style="display: block; margin-bottom: 5px; font-weight: 500;">
+                <span style="color: #e74c3c;">*</span> Groupe :
+            </label>
+            <select name="groupe" id="groupe" class="form-control" onchange="this.form.submit()" required>
+                <option value="">-- Choisir un groupe --</option>
+                {{#each groupes}}
+                    <option value="{{this.id}}" {{#if (eq this.id ../selectedGroupeId)}}selected{{/if}}>
+                        {{this.nom}}
+                    </option>
+                {{/each}}
+            </select>
+        </div>
+        {{/if}}
+    </form>
+</div>
+
+<script>
+function onDepartementChange() {
+    const form = document.getElementById('filterForm');
+    const groupeSelect = document.getElementById('groupe');
+    
+    // Réinitialiser le groupe quand on change de département
+    if (groupeSelect) {
+        groupeSelect.value = '';
+    }
+    
+    form.submit();
+}
+</script>
+
+{{#if selectedDeptId}}
+    {{#if selectedGroupeId}}
+        {{#if groupeNom}}
+        <div class="info-card" style="display: flex; flex-wrap: wrap; gap: 20px; align-items: center;">
+            <div>
+                <h3>Emploi du temps - {{departementNom}} / {{groupeNom}}</h3>
+                <p style="margin-top: 5px; color: var(--text-secondary);">
+                    Vue du groupe {{groupeNom}} avec actions de gestion
+                </p>
+            </div>
+            <div style="margin-left: auto; display: flex; gap: 10px;">
+                {{#if hasCours}}
+                    <span class="badge badge-info">{{activeDayCount}} jour{{#if (eq activeDayCount 1)}}{{else}}s{{/if}} planifié{{#if (eq activeDayCount 1)}}{{else}}s{{/if}}</span>
+                {{/if}}
+            </div>
+        </div>
+        {{/if}}
+
+        {{#unless hasCours}}
+            <div class="info-card" style="border-left-color: var(--warning-color);">
+                <h3>Aucun cours planifié</h3>
+                <p>Aucun cours n'a encore été créé pour le groupe {{groupeNom}}.</p>
+                <a href="/cours/create" class="btn btn-primary" style="margin-top: 10px;">+ Ajouter le premier cours</a>
+            </div>
+        {{/unless}}
+    {{else}}
+        <div class="info-card" style="border-left-color: var(--info-color);">
+            <h3>👆 Sélectionnez un groupe</h3>
+            <p>Choisissez un groupe dans la liste ci-dessus pour afficher son emploi du temps.</p>
+        </div>
+    {{/if}}
+
+    {{#if selectedGroupeId}}
+        {{#if hasCours}}
+            <!-- Légende des couleurs -->
+            <div class="info-card" style="margin-bottom: 15px;">
+                <h4 style="margin-bottom: 10px; color: var(--text-primary);">🎨 Légende des types de cours</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-radius: 4px; border: 2px solid #a78bfa;"></span>
+                        <span>Cours Magistral (CM)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 4px; border: 2px solid #34d399;"></span>
+                        <span>Travaux Dirigés (TD)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 4px; border: 2px solid #fbbf24;"></span>
+                        <span>Travaux Pratiques (TP)</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #ec4899, #db2777); border-radius: 4px; border: 2px solid #f472b6;"></span>
+                        <span>Atelier</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="display: inline-block; width: 20px; height: 20px; background: linear-gradient(135deg, #ef4444, #dc2626); border-radius: 4px; border: 2px solid #f87171;"></span>
+                        <span>Examen</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="calendar-wrapper">
+                <div class="calendar-time-column">
+                    {{#each timeScale}}
+                        <div class="calendar-time-slot">{{this}}</div>
+                    {{/each}}
+                </div>
+                <div class="calendar-days">
+                    {{#each schedule}}
+                        <div class="calendar-day">
+                            <div class="calendar-day-header">{{this.label}}</div>
+                            <div class="calendar-day-body" style="height: {{../calendarHeight}}px;">
+                                {{#each this.sessions}}
+                                    <div class="calendar-event calendar-event-admin" data-type="{{this.type_cours}}" style="top: {{this.position.top}}px; height: {{this.position.height}}px;">
+                                        <span class="calendar-event-time">⏰ {{this.heure_debut_affiche}} - {{this.heure_fin_affiche}}</span>
+                                        <strong class="calendar-event-title">{{this.titre}}</strong>
+                                        <span class="calendar-event-meta">📚 {{this.type_label}}</span>
+                                        <span class="calendar-event-detail">👨‍🏫 {{this.enseignant_affichage}}</span>
+                                        <span class="calendar-event-detail">👥 {{this.groupe_affichage}}</span>
+                                        <span class="calendar-event-detail">🏫 {{this.salle_affichage}}</span>
+                                        <div class="calendar-event-actions">
+                                            <a href="/cours/edit/{{this.id}}" class="btn-action btn-edit" title="Modifier">✏️</a>
+                                            <form action="/cours/delete/{{this.id}}" method="POST" style="display:inline;" onsubmit="return confirm('Supprimer ce cours ?');">
+                                                <button type="submit" class="btn-action btn-delete" title="Supprimer">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                {{/each}}
+                            </div>
+                        </div>
+                    {{/each}}
+                </div>
+            </div>
+        {{/if}}
+    {{/if}}
+{{else}}
+    <div class="info-card">
+        <h3>👆 Sélectionnez un département</h3>
+        <p>Choisissez un département dans la liste ci-dessus pour afficher son emploi du temps.</p>
+    </div>
+{{/if}}
+
+<style>
+.calendar-event-admin {
+    position: relative;
+    padding-bottom: 35px;
+}
+
+.calendar-event-actions {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    right: 5px;
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.btn-action {
+    padding: 4px 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+}
+
+.btn-action:hover {
+    transform: scale(1.1);
+}
+
+.btn-edit:hover {
+    background: #ffc107;
+}
+
+.btn-delete {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.btn-delete:hover {
+    background: #dc3545;
+    color: white;
+}
+</style>

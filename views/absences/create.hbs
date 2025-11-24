@@ -1,0 +1,195 @@
+<div class="page-header">
+    <h1>➕ Enregistrer des absences</h1>
+    <a href="/absences" class="btn btn-secondary">← Retour</a>
+</div>
+
+<div class="card">
+    <form id="absenceForm">
+        <div class="form-group">
+            <label for="id_cours">Cours *</label>
+            <select id="id_cours" name="id_cours" class="form-control" required>
+                <option value="">-- Sélectionner un cours --</option>
+                {{#each cours}}
+                <option value="{{id}}">{{titre}} - {{jour}} {{substring heure_debut 0 5}}</option>
+                {{/each}}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="date_absence">Date *</label>
+            <input type="date" id="date_absence" name="date_absence" class="form-control" value="{{date}}" required>
+        </div>
+
+        <div id="etudiantsContainer" style="display: none;">
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Liste des étudiants</h3>
+            <div class="alert alert-info">
+                Cochez les étudiants absents
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick="selectAll(true)">Tout sélectionner</button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="selectAll(false)">Tout désélectionner</button>
+            </div>
+
+            <div id="etudiantsList" class="students-grid"></div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">💾 Enregistrer les absences</button>
+            <a href="/absences" class="btn btn-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+
+<style>
+.students-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.student-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.student-checkbox:hover {
+    border-color: var(--primary-color);
+    background: #f8f9fa;
+}
+
+.student-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.student-checkbox.checked {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.student-info {
+    flex: 1;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #333;
+}
+
+.student-cin {
+    font-size: 0.85em;
+    color: #666;
+}
+</style>
+
+<script>
+const coursSelect = document.getElementById('id_cours');
+const etudiantsContainer = document.getElementById('etudiantsContainer');
+const etudiantsList = document.getElementById('etudiantsList');
+
+coursSelect.addEventListener('change', async (e) => {
+    const idCours = e.target.value;
+    
+    if (!idCours) {
+        etudiantsContainer.style.display = 'none';
+        return;
+    }
+
+    try {
+        const response = await fetch(`/absences/api/cours/${idCours}/etudiants`);
+        const data = await response.json();
+
+        if (data.etudiants && data.etudiants.length > 0) {
+            etudiantsList.innerHTML = data.etudiants.map(etudiant => `
+                <label class="student-checkbox" data-id="${etudiant.id}">
+                    <input type="checkbox" name="absents" value="${etudiant.id}">
+                    <div class="student-info">
+                        <div class="student-name">${etudiant.prenom} ${etudiant.nom}</div>
+                        <div class="student-cin">${etudiant.cin || 'N/A'}</div>
+                    </div>
+                </label>
+            `).join('');
+            
+            etudiantsContainer.style.display = 'block';
+
+            // Ajouter l'événement pour changer la classe "checked"
+            document.querySelectorAll('.student-checkbox input').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const label = e.target.closest('.student-checkbox');
+                    if (e.target.checked) {
+                        label.classList.add('checked');
+                    } else {
+                        label.classList.remove('checked');
+                    }
+                });
+            });
+        } else {
+            etudiantsList.innerHTML = '<p class="alert alert-warning">Aucun étudiant trouvé pour ce cours</p>';
+            etudiantsContainer.style.display = 'block';
+        }
+    } catch (error) {
+        alert('Erreur lors du chargement des étudiants');
+        console.error(error);
+    }
+});
+
+function selectAll(select) {
+    document.querySelectorAll('.student-checkbox input').forEach(checkbox => {
+        checkbox.checked = select;
+        const label = checkbox.closest('.student-checkbox');
+        if (select) {
+            label.classList.add('checked');
+        } else {
+            label.classList.remove('checked');
+        }
+    });
+}
+
+document.getElementById('absenceForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+    const absents = formData.getAll('absents');
+
+    if (absents.length === 0) {
+        alert('Veuillez sélectionner au moins un étudiant absent');
+        return;
+    }
+
+    const data = {
+        id_cours: formData.get('id_cours'),
+        date_absence: formData.get('date_absence'),
+        absents
+    };
+
+    try {
+        const response = await fetch('/absences/create', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert(result.message);
+            window.location.href = '/absences';
+        } else {
+            alert('Erreur: ' + result.error);
+        }
+    } catch (error) {
+        alert('Erreur lors de l\'enregistrement');
+        console.error(error);
+    }
+});
+</script>

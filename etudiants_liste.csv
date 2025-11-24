@@ -1,0 +1,6 @@
+id,nom,prenom,email,cin,date_naissance,id_groupe,groupe,id_specialite,specialite
+1,Jemli,Sarah,sarah.jemli@etudiant.tn,12345678,2003-05-15,1,DSI3-G1,1,Développement de Systèmes d'Information
+2,Mansour,Youssef,youssef.mansour@etudiant.tn,23456789,2003-08-20,1,DSI3-G1,1,Développement de Systèmes d'Information
+3,Hamdi,Leila,leila.hamdi@etudiant.tn,34567890,2003-03-10,2,DSI3-G2,1,Développement de Systèmes d'Information
+4,yasin,eer,eer@gmail.com,00548798,2004-09-02,3,DSI2-G1,1,Développement de Systèmes d'Information
+5,ahmed,ahmed,ahmed@gmail.com,00548798,2004-06-02,19,BAT1-A,11,Bâtiment

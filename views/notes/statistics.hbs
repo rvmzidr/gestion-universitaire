@@ -1,0 +1,227 @@
+<div class="statistics-page">
+    <div class="page-header">
+        <h1>📊 Statistiques du Cours</h1>
+        {{#if cours}}
+        <p class="page-subtitle">{{cours.titre}}</p>
+        {{/if}}
+    </div>
+
+    {{#if stats}}
+    <!-- Statistiques globales -->
+    <div class="stats-grid">
+        <div class="stat-card stat-primary">
+            <div class="stat-icon">👨‍🎓</div>
+            <div class="stat-content">
+                <div class="stat-value">{{stats.nombre_etudiants}}</div>
+                <div class="stat-label">Étudiants</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-success">
+            <div class="stat-icon">📈</div>
+            <div class="stat-content">
+                <div class="stat-value">{{#if stats.moyenne_generale}}{{stats.moyenne_generale}}{{else}}--{{/if}}</div>
+                <div class="stat-label">Moyenne</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-warning">
+            <div class="stat-icon">📉</div>
+            <div class="stat-content">
+                <div class="stat-value">{{#if stats.note_min}}{{stats.note_min}}{{else}}--{{/if}}</div>
+                <div class="stat-label">Note Min</div>
+            </div>
+        </div>
+
+        <div class="stat-card stat-info">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <div class="stat-value">{{#if stats.note_max}}{{stats.note_max}}{{else}}--{{/if}}</div>
+                <div class="stat-label">Note Max</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Classement -->
+    {{#if classement.length}}
+    <div class="classement-section">
+        <h2>🏆 Classement des Étudiants</h2>
+        <div class="classement-table-container">
+            <table class="classement-table">
+                <thead>
+                    <tr>
+                        <th>Rang</th>
+                        <th>Étudiant</th>
+                        <th>CIN</th>
+                        <th>Nombre de notes</th>
+                        <th>Moyenne</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {{#each classement}}
+                    <tr class="{{#if (eq rang 1)}}first-place{{else if (eq rang 2)}}second-place{{else if (eq rang 3)}}third-place{{/if}}">
+                        <td class="rang-cell">
+                            {{#if (eq rang 1)}}🥇{{else if (eq rang 2)}}🥈{{else if (eq rang 3)}}🥉{{else}}{{rang}}{{/if}}
+                        </td>
+                        <td>
+                            <strong>{{nom}} {{prenom}}</strong>
+                        </td>
+                        <td>{{cin}}</td>
+                        <td>{{nombre_notes}}</td>
+                        <td>
+                            <span class="moyenne-badge {{#if (math moyenne 10)}}badge-success{{else}}badge-danger{{/if}}">
+                                {{moyenne}}/20
+                            </span>
+                        </td>
+                        <td>
+                            {{#if (math moyenne 10)}}
+                            <span class="status-badge status-success">✓ Admis</span>
+                            {{else}}
+                            <span class="status-badge status-danger">✗ Non admis</span>
+                            {{/if}}
+                        </td>
+                    </tr>
+                    {{/each}}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {{/if}}
+
+    {{else}}
+    <div class="empty-state">
+        <div class="empty-icon">📊</div>
+        <h3>Aucune statistique disponible</h3>
+        <p>Aucune note n'a été saisie pour ce cours.</p>
+    </div>
+    {{/if}}
+
+    <div class="back-link">
+        <a href="/notes" class="btn btn-secondary">← Retour aux notes</a>
+    </div>
+</div>
+
+<style>
+.statistics-page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-xl);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
+}
+
+.classement-section {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    padding: var(--spacing-2xl);
+    margin-bottom: var(--spacing-xl);
+}
+
+.classement-section h2 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xl);
+    text-align: center;
+}
+
+.classement-table-container {
+    overflow-x: auto;
+}
+
+.classement-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.classement-table th {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: var(--spacing-md) var(--spacing-lg);
+    text-align: left;
+    font-weight: 600;
+}
+
+.classement-table td {
+    padding: var(--spacing-md) var(--spacing-lg);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.classement-table tbody tr {
+    transition: background-color var(--transition-fast);
+}
+
+.classement-table tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+.first-place {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+}
+
+.second-place {
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
+}
+
+.third-place {
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
+}
+
+.rang-cell {
+    font-size: 1.5rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.moyenne-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.badge-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-success {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.back-link {
+    text-align: center;
+    margin-top: var(--spacing-2xl);
+}
+
+@media (max-width: 768px) {
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+</style>
