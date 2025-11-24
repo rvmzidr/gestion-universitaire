@@ -46,6 +46,17 @@
                         <span>Mon emploi</span>
                     </a></li>
                 {{/if}}
+                    <li><a href="/notifications" class="nav-link nav-link-notifications">
+                        <span class="link-icon">🔔</span>
+                        <span>Notifications</span>
+                        {{#if unreadNotifications}}
+                            <span class="notification-badge">{{unreadNotifications}}</span>
+                        {{/if}}
+                    </a></li>
+                    <li><a href="/messagerie" class="nav-link">
+                        <span class="link-icon">💬</span>
+                        <span>Messagerie</span>
+                    </a></li>
             </ul>
             
             <div class="nav-user">

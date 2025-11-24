@@ -290,7 +290,8 @@ Benali,Ahmed,ahmed.benali@etudiant.fr,E2025001,2003-05-15,0612345678,12 Rue de T
 - [ ] Support Excel (.xlsx)
 - [ ] Historique des imports
 - [ ] Annulation d'import (rollback)
-- [ ] Notification par email
+- [x] Notification par email (Sprint 5)
+- [x] Messagerie interne (Sprint 5)
 
 ## 📞 Support
 

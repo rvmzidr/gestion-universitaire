@@ -54,6 +54,28 @@ class User {
 
         return rows[0] || null;
     }
+
+    static async findAllExcept(userId) {
+        const [rows] = await db.query(
+            `SELECT id, nom, prenom, email, login, role
+             FROM utilisateurs
+             WHERE id != ?
+             ORDER BY role, nom, prenom`,
+            [userId]
+        );
+        return rows;
+    }
+
+    static async findFirstByRole(role) {
+        const [rows] = await db.query(
+            `SELECT id, nom, prenom, email, login, role
+             FROM utilisateurs
+             WHERE role = ?
+             LIMIT 1`,
+            [role]
+        );
+        return rows[0] || null;
+    }
 }
 
 module.exports = User;

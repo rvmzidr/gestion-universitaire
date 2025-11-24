@@ -5,6 +5,10 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 require('dotenv').config();
+const Notification = require('./models/Notification');
+const { optionalAuth } = require('./middleware/authMiddleware');
+const messagingRoutes = require('./routes/messagerie');
+const notificationRoutes = require('./routes/notifications');
 
 const app = express();
 
@@ -30,6 +34,20 @@ app.engine('hbs', engine({
         },
         json: (context) => {
             return JSON.stringify(context);
+        },
+        formatDate: (value) => {
+            if (!value) return '';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) {
+                return String(value);
+            }
+            return date.toLocaleString('fr-FR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
         }
     }
 }));
@@ -47,6 +65,22 @@ app.use(session({
     cookie: { maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(optionalAuth);
+
+app.use(async (req, res, next) => {
+    if (req.user) {
+        try {
+            res.locals.unreadNotifications = await Notification.countUnread(req.user.id);
+        } catch (error) {
+            res.locals.unreadNotifications = 0;
+            console.error('Impossible de récupérer les notifications non lues :', error);
+        }
+    } else {
+        res.locals.unreadNotifications = 0;
+    }
+    next();
+});
 
 // Middleware pour passer les paramètres query aux vues
 app.use((req, res, next) => {
@@ -71,6 +105,8 @@ app.use('/enseignants', enseignantRoutes);
 app.use('/etudiants', etudiantRoutes);
 app.use('/cours', coursRoutes);
 app.use('/emplois', emploisRoutes);
+app.use('/messagerie', messagingRoutes);
+app.use('/notifications', notificationRoutes);
 
 // Page d'accueil (redirection)
 app.get('/', (req, res) => {

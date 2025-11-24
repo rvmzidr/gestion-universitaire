@@ -1,0 +1,53 @@
+<div class="notifications-page">
+    <header class="page-header">
+        <div>
+            <h1>🔔 Notifications</h1>
+            <p class="page-subtitle">Suivez les alertes push et email liées à votre compte.</p>
+        </div>
+        <form action="/notifications/mark-all" method="post">
+            <button type="submit" class="btn btn-sm btn-secondary">Tout marquer comme lu</button>
+        </form>
+    </header>
+
+    {{#if success}}
+        {{#if (eq success 'notification')}}
+            <div class="alert alert-success">Notification marquée comme lue.</div>
+        {{else if (eq success 'notifications')}}
+            <div class="alert alert-success">Toutes les notifications sont maintenant lues.</div>
+        {{/if}}
+    {{/if}}
+
+    {{#if error}}
+        <div class="alert alert-danger">{{error}}</div>
+    {{/if}}
+
+    <div class="notifications-list">
+        {{#if notifications.length}}
+            {{#each notifications}}
+                <article class="notification-card {{#if is_read}}is-read{{else}}is-unread{{/if}}">
+                    <div class="notification-content">
+                        <div class="notification-meta">
+                            <span class="notification-title">{{title}}</span>
+                            <span class="notification-channel">{{channel}}</span>
+                            <span class="notification-date">{{formatDate created_at}}</span>
+                        </div>
+                        <p>{{message}}</p>
+                        {{#if payload}}
+                            <small class="notification-payload">{{payload}}</small>
+                        {{/if}}
+                    </div>
+                        {{#unless is_read}}
+                            <form method="post" action="/notifications/mark-read/{{id}}">
+                                <button type="submit" class="btn btn-sm btn-secondary">Marquer comme lu</button>
+                            </form>
+                        {{/unless}}
+                </article>
+            {{/each}}
+        {{else}}
+            <div class="empty-state">
+                <p>Aucune notification pour le moment.</p>
+                <p>Les alertes push et email s'afficheront ici lorsque vous recevrez des messages importants.</p>
+            </div>
+        {{/if}}
+    </div>
+</div>

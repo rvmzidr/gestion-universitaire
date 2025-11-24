@@ -1,0 +1,253 @@
+<div class="messaging-page">
+    <header class="page-header">
+        <div>
+            <h1>💬 Messagerie interne</h1>
+            <p class="page-subtitle">Échangez efficacement avec les enseignants et les étudiants.</p>
+        </div>
+    </header>
+
+    {{#if success}}
+        <div class="alert alert-success">Message envoyé avec succès.</div>
+    {{/if}}
+
+    {{#if error}}
+        <div class="alert alert-danger">{{error}}</div>
+    {{/if}}
+
+    <div class="messaging-grid">
+        <aside class="messaging-sidebar">
+            <div class="sidebar-header">
+                <h2>Contacts</h2>
+                <p>{{contacts.length}} conversation{{#unless (eq contacts.length 1)}}s{{/unless}}</p>
+            </div>
+            <ul class="contact-list">
+                {{#if contacts.length}}
+                    {{#each contacts}}
+                        <li class="contact-item {{#if (eq ../selectedContactId contact_id)}}is-active{{/if}}">
+                            <a href="/messagerie?contact={{contact_id}}">
+                                <div class="contact-main">
+                                    <span class="contact-name">{{prenom}} {{nom}}</span>
+                                    <span class="contact-role">{{role}}</span>
+                                </div>
+                                <div class="contact-meta">
+                                    {{#if unread_count}}
+                                        <span class="contact-badge">{{unread_count}}</span>
+                                    {{/if}}
+                                    <small>Dernier message: {{formatDate last_message_date}}</small>
+                                </div>
+                            </a>
+                        </li>
+                    {{/each}}
+                {{else}}
+                    <li class="contact-item empty">
+                        <p>Aucune conversation active pour le moment.</p>
+                        <p>Choisissez un destinataire pour démarrer.</p>
+                    </li>
+                {{/if}}
+            </ul>
+            <div class="contact-picker">
+                <form method="get" action="/messagerie">
+                    <label for="contact_select">Afficher une conversation</label>
+                    <select id="contact_select" name="contact">
+                        {{#each recipients}}
+                            <option value="{{id}}" {{#if (eq id ../selectedContactId)}}selected{{/if}}>
+                                {{prenom}} {{nom}} ({{role}})
+                            </option>
+                        {{/each}}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success">Afficher</button>
+                </form>
+            </div>
+        </aside>
+
+        <section class="messaging-thread">
+            {{#if selectedContact}}
+                <header class="thread-header">
+                    <div>
+                        <h2>{{selectedContact.prenom}} {{selectedContact.nom}}</h2>
+                        <p class="thread-subtitle">{{selectedContact.role}} — Derniers échanges</p>
+                    </div>
+                    <span class="thread-status">{{conversation.length}} message{{#unless (eq conversation.length 1)}}s{{/unless}}</span>
+                </header>
+
+                <div class="thread-messages">
+                    {{#if conversation.length}}
+                        {{#each conversation}}
+                            <article class="thread-message {{#if (eq sender_id ../selectedContact.id)}}received{{else}}sent{{/if}}">
+                                <div class="thread-message-body">
+                                    <header>
+                                        <span class="message-author">
+                                            {{#if (eq sender_id ../selectedContact.id)}}{{selectedContact.prenom}} {{selectedContact.nom}}{{else}}Vous{{/if}}
+                                        </span>
+                                        <span class="message-time">{{formatDate created_at}}</span>
+                                    </header>
+                                    <strong class="message-subject">{{#if subject}}{{subject}}{{else}}Sans objet{{/if}}</strong>
+                                    <p>{{body}}</p>
+                                </div>
+                            </article>
+                        {{/each}}
+                    {{else}}
+                        <div class="empty-thread">
+                            <p>Aucun message échangé avec ce contact.</p>
+                            <p>Utilisez le formulaire ci-dessous pour envoyer le premier message.</p>
+                        </div>
+                    {{/if}}
+                </div>
+
+                <form method="post" action="/messagerie" class="message-form">
+                    <input type="hidden" name="recipient_id" value="{{selectedContact.id}}">
+                    <div class="form-group">
+                        <label for="subject">Objet</label>
+                        <input type="text" id="subject" name="subject" value="{{formData.subject}}" placeholder="Objet (optionnel)">
+                    </div>
+                    <div class="form-group">
+                        <label for="body">Message</label>
+                        <textarea id="body" name="body" rows="4" required>{{formData.body}}</textarea>
+                    </div>
+                    <div class="form-group form-channels">
+                        <label>Notifier via</label>
+                        <label class="channel-option">
+                            <input type="checkbox" name="channels" value="push" checked>
+                            <span>Push</span>
+                        </label>
+                        <label class="channel-option">
+                            <input type="checkbox" name="channels" value="email">
+                            <span>Email</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Envoyer le message</button>
+                </form>
+            {{else}}
+                <div class="empty-thread">
+                    <p>Sélectionnez un contact pour afficher la conversation.</p>
+                </div>
+            {{/if}}
+        </section>
+    </div>
+</div><div class="messaging-page">
+    <header class="page-header">
+        <div>
+            <h1>💬 Messagerie interne</h1>
+            <p class="page-subtitle">Échangez efficacement avec les enseignants et les étudiants.</p>
+        </div>
+    </header>
+
+    {{#if success}}
+        <div class="alert alert-success">Message envoyé avec succès.</div>
+    {{/if}}
+
+    {{#if error}}
+        <div class="alert alert-danger">{{error}}</div>
+    {{/if}}
+
+    <div class="messaging-grid">
+        <aside class="messaging-sidebar">
+                <p>{{contacts.length}} conversation{{#unless (eq contacts.length 1)}}s{{/unless}}</p>
+                <h2>Contacts</h2>
+                <p>{{contacts.length}} conversation{{#if (gt contacts.length 1)}}s{{/if}}</p>
+            </div>
+            <ul class="contact-list">
+                {{#if contacts.length}}
+                    {{#each contacts}}
+                        <li class="contact-item {{#if (eq ../selectedContactId contact_id)}}is-active{{/if}}">
+                            <a href="/messagerie?contact={{contact_id}}">
+                                <div class="contact-main">
+                                    <span class="contact-name">{{prenom}} {{nom}}</span>
+                                    <span class="contact-role">{{role}}</span>
+                                </div>
+                                <div class="contact-meta">
+                                    {{#if unread_count}}
+                                        <span class="contact-badge">{{unread_count}}</span>
+                                    {{/if}}
+                                    <small>Dernier message: {{formatDate last_message_date}}</small>
+                                </div>
+                            </a>
+                        </li>
+                    {{/each}}
+                {{else}}
+                    <li class="contact-item empty">
+                        <p>Aucune conversation active pour le moment.</p>
+                        <p>Choisissez un destinataire pour démarrer.</p>
+                    </li>
+                {{/if}}
+            </ul>
+            <div class="contact-picker">
+                <form method="get" action="/messagerie">
+                    <label for="contact_select">Afficher une conversation</label>
+                    <select id="contact_select" name="contact">
+                        {{#each recipients}}
+                            <option value="{{id}}" {{#if (eq id ../selectedContactId)}}selected{{/if}}>
+                                {{prenom}} {{nom}} ({{role}})
+                    <span class="thread-status">{{conversation.length}} message{{#unless (eq conversation.length 1)}}s{{/unless}}</span>
+                        {{/each}}
+                    </select>
+                    <button type="submit" class="btn btn-sm btn-success">Afficher</button>
+                </form>
+            </div>
+        </aside>
+
+        <section class="messaging-thread">
+            {{#if selectedContact}}
+                <header class="thread-header">
+                    <div>
+                        <h2>{{selectedContact.prenom}} {{selectedContact.nom}}</h2>
+                        <p class="thread-subtitle">{{selectedContact.role}} — Derniers échanges</p>
+                    </div>
+                    <span class="thread-status">{{conversation.length}} message{{#if (gt conversation.length 1)}}s{{/if}}</span>
+                </header>
+
+                <div class="thread-messages">
+                    {{#if conversation.length}}
+                        {{#each conversation}}
+                            <article class="thread-message {{#if (eq sender_id ../selectedContact.id)}}received{{else}}sent{{/if}}">
+                                <div class="thread-message-body">
+                                    <header>
+                                        <span class="message-author">
+                                            {{#if (eq sender_id ../selectedContact.id)}}{{selectedContact.prenom}} {{selectedContact.nom}}{{else}}Vous{{/if}}
+                                        </span>
+                                        <span class="message-time">{{formatDate created_at}}</span>
+                                    </header>
+                                    <strong class="message-subject">{{#if subject}}{{subject}}{{else}}Sans objet{{/if}}</strong>
+                                    <p>{{body}}</p>
+                                </div>
+                            </article>
+                        {{/each}}
+                    {{else}}
+                        <div class="empty-thread">
+                            <p>Aucun message échangé avec ce contact.</p>
+                            <p>Utilisez le formulaire ci-dessous pour envoyer le premier message.</p>
+                        </div>
+                    {{/if}}
+                </div>
+
+                <form method="post" action="/messagerie" class="message-form">
+                    <input type="hidden" name="recipient_id" value="{{selectedContact.id}}">
+                    <div class="form-group">
+                        <label for="subject">Objet</label>
+                        <input type="text" id="subject" name="subject" value="{{formData.subject}}" placeholder="Objet (optionnel)">
+                    </div>
+                    <div class="form-group">
+                        <label for="body">Message</label>
+                        <textarea id="body" name="body" rows="4" required>{{formData.body}}</textarea>
+                    </div>
+                    <div class="form-group form-channels">
+                        <label>Notifier via</label>
+                        <label class="channel-option">
+                            <input type="checkbox" name="channels" value="push" checked>
+                            <span>Push</span>
+                        </label>
+                        <label class="channel-option">
+                            <input type="checkbox" name="channels" value="email">
+                            <span>Email</span>
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Envoyer le message</button>
+                </form>
+            {{else}}
+                <div class="empty-thread">
+                    <p>Sélectionnez un contact pour afficher la conversation.</p>
+                </div>
+            {{/if}}
+        </section>
+    </div>
+</div>

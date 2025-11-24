@@ -122,11 +122,15 @@ Application web complète pour la gestion d'une université avec fonctionnalité
 gestion_universitaire/
 ├── config/
 │   └── database.js              # Configuration BDD
+├── database/
+│   └── create_messaging_tables.sql  # Messages & notifications
 ├── controllers/
 │   ├── authController.js        # Authentification + Sécurité
 │   ├── departementController.js # CRUD + Import CSV
 │   ├── enseignantController.js  # CRUD + Import CSV
-│   └── etudiantController.js    # CRUD + Import CSV
+│   ├── etudiantController.js    # CRUD + Import CSV
+│   ├── messagingController.js   # Messagerie interne
+│   └── notificationController.js# Notifications & marqueurs
 ├── middleware/
 │   ├── authMiddleware.js        # Auth + Rôles
 │   └── uploadMiddleware.js      # Upload fichiers
@@ -134,13 +138,19 @@ gestion_universitaire/
 │   ├── user.js                  # Modèle utilisateur
 │   ├── Departement.js          # Modèle département
 │   ├── Enseignant.js           # Modèle enseignant
-│   └── Etudiant.js             # Modèle étudiant
+│   ├── Etudiant.js             # Modèle étudiant
+│   ├── Message.js              # Messagerie (messages)
+│   └── Notification.js         # Notifications
 ├── routes/
 │   ├── auth.js                 # Routes auth
 │   ├── dashboard.js            # Routes dashboard
 │   ├── departements.js         # Routes départements
 │   ├── enseignants.js          # Routes enseignants
-│   └── etudiants.js            # Routes étudiants
+│   ├── etudiants.js            # Routes étudiants
+│   ├── messagerie.js           # Messagerie interne
+│   └── notifications.js        # Notifications et marqueurs
+├── services/
+│   └── notificationService.js  # Push/email + journalisation
 ├── views/                      # Templates Handlebars
 ├── public/
 │   ├── css/
@@ -173,6 +183,12 @@ DB_PASSWORD=
 DB_NAME=gestion_universitaire
 JWT_SECRET=votre_secret_jwt
 SESSION_SECRET=votre_secret_session
+EMAIL_HOST=smtp.exemple.com      # facultatif pour les emails de notifications
+EMAIL_PORT=587
+EMAIL_USER=notifications@exemple.com
+EMAIL_PASS=motdepasseSMTP
+EMAIL_SECURE=false
+EMAIL_FROM="Gestion universitaire" <notifications@exemple.com>
 ```
 
 ### Lancement
@@ -303,6 +319,18 @@ http://localhost:3000
 - Se reconnecter
 - Contacter l'administrateur
 
+## ✉️ Sprint 5 : Notifications & Messagerie
+
+Cette itération modernise les échanges entre les utilisateurs et ajoute une couche de notifications push/email.
+
+### Fonctionnalités ajoutées
+- ✅ **Notifications push/email** : nouvelle table `notifications`, badge de nav, page `/notifications`, marquage des alertes comme lues et envoi d'emails via `nodemailer` lorsque les variables `EMAIL_*` sont renseignées.
+- ✅ **Messagerie interne** : page `/messagerie` avec liste de contacts, signalement des messages non lus, thread central et possibilité de choisir le canal (push/email) lors de l'envoi. Un scénario de démo crée automatiquement un échange étudiant ↔ enseignant pour illustrer le flux.
+- ✅ **Service de notifications** (`services/notificationService.js`) affiche en console les push et déclenche les emails selon le canal choisi.
+
+### Base de données & migration
+- Exécuter `database/create_messaging_tables.sql` pour ajouter les tables `messages` et `notifications`.
+
 ## 📈 Évolutions futures
 
 ### Court terme
@@ -315,7 +343,8 @@ http://localhost:3000
 - [ ] Tableau de bord avec statistiques
 - [ ] Gestion des notes
 - [ ] Planning des cours
-- [ ] Notifications par email
+- [x] Notifications par email
+- [x] Messagerie interne
 
 ### Long terme
 - [ ] Application mobile
